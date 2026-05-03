@@ -1,0 +1,1 @@
+package co.com.empresa.domain.typecategory;/** * Query para obtener una categoria de tipo por su identificador. */public record GetTypeCategoryByIdQuery(Long id) {}

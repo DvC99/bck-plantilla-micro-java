@@ -1,0 +1,2 @@
+package co.com.empresa.domain.typecategory;/** * Query para obtener todas las categorias de tipos aplicando filtros y ordenamiento. */public record GetAllTypeCategoriesQuery(TypeCategory context) {}
+

@@ -1,0 +1,1 @@
+package co.com.empresa.domain.typecategory;import co.com.empresa.commons.repository.IRepository;/** * Puerto de salida unificado para operaciones de {@code TypeCategory} * . */public interface ITypeCategoryRepository extends IRepository<TypeCategory, Long> {}

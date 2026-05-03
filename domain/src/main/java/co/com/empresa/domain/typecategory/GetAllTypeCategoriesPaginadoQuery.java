@@ -1,0 +1,2 @@
+package co.com.empresa.domain.typecategory;import co.com.empresa.commons.dto.pageable.PageContext;/** * Query paginado para obtener TypeCategory con filtros y ordenamiento. */public record GetAllTypeCategoriesPaginadoQuery(PageContext<TypeCategory> context) {}
+

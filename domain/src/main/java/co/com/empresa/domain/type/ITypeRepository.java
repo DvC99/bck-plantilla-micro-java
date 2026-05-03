@@ -1,0 +1,1 @@
+package co.com.empresa.domain.type;import co.com.empresa.commons.repository.IRepository;/** * Puerto de salida unificado para operaciones de {@code Type} * . */public interface ITypeRepository extends IRepository<Type, Long> {}
