@@ -1,0 +1,116 @@
+plugins {
+
+    id 'java'
+
+    id 'io.spring.dependency-management' version "${dependencyManagementPlugin}"
+
+}
+
+
+jar {
+
+    enabled = true
+
+}
+
+
+dependencyManagement {
+
+    imports {
+
+        // Importamos el BOM explicitamente usando la variable local
+
+        mavenBom "org.springframework.boot:spring-boot-dependencies:${springBootVersion}"
+
+    }
+
+}
+
+
+dependencies {
+
+    // Modulos del proyecto
+
+    implementation project(':domain')
+
+    implementation project(':commons')
+
+
+    // Spring Boot
+
+    implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
+
+    implementation "org.springframework.boot:spring-boot-starter-web:${springBootVersion}"
+
+    implementation "org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}"
+
+    implementation "org.springframework.boot:spring-boot-starter-kafka:${springBootVersion}"
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+
+
+    // Spring Data JPA (incluye soporte transaccional)
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+
+    // Validacion
+
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+
+    // SpringDoc OpenAPI (Swagger)
+
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocOpenapiVersion}"
+
+
+    // Spring Boot Configuration Processor (genera metadata para autocompletado del IDE)
+
+    annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+
+
+    // Spring Cloud
+
+    implementation "org.springframework.cloud:spring-cloud-starter-config:${springCloudStarterConfig}"
+
+
+    // Spring Framework
+
+    implementation 'org.springframework:spring-tx'
+
+
+    // Spring Data (para Page, Sort, etc.)
+
+    implementation 'org.springframework.data:spring-data-commons'
+
+
+    // Testing
+
+    testImplementation platform("org.junit:junit-bom:${junitVersion}")
+
+    testImplementation "org.junit.jupiter:junit-jupiter:${junitVersion}"
+
+
+    // Lombok
+
+    compileOnly "org.projectlombok:lombok:${lombokVersion}"
+
+    annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+
+
+    // Code Generation & Utilities - ORDEN CRÍTICO: Lombok primero, MapStruct segundo, binding al final
+
+    implementation "org.mapstruct:mapstruct:${mapstructVersion}"
+
+    annotationProcessor "org.mapstruct:mapstruct-processor:${mapstructVersion}"
+
+    annotationProcessor "org.projectlombok:lombok-mapstruct-binding:${lombokMapstructBindingVersion}"
+
+}
+
+
+test {
+
+    useJUnitPlatform()
+
+}
