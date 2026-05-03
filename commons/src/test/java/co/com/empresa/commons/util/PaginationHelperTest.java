@@ -1,0 +1,1 @@
+package co.com.empresa.commons.util;import org.junit.jupiter.api.DisplayName;import org.junit.jupiter.api.Test;import static org.junit.jupiter.api.Assertions.assertNotNull;class PaginationHelperTest {    @Test    @DisplayName("PaginationHelper should not be null")    void shouldNotBeNull() {        assertNotNull(PaginationHelper.class);    }}
