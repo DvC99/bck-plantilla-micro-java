@@ -7,6 +7,7 @@ import co.com.empresa.domain.event.IEventAuditService;
 import co.com.empresa.infrastructure.constants.InfrastructureErrors;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
  * the outgoing event in the audit log.
  */
 @Component
+@ConditionalOnProperty(name = "app.messaging.kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class KafkaEventPublisher implements IEventPublisher {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final IEventAuditService eventAuditService;

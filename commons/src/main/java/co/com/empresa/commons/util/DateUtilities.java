@@ -2,22 +2,13 @@ package co.com.empresa.commons.util;
 
 
 import lombok.AccessLevel;
-
 import lombok.NoArgsConstructor;
-
-
 import java.text.SimpleDateFormat;
-
 import java.time.LocalDate;
-
 import java.time.LocalDateTime;
-
 import java.time.ZoneId;
-
 import java.time.format.DateTimeFormatter;
-
 import java.time.temporal.ChronoUnit;
-
 import java.util.Date;
 
 
@@ -28,7 +19,6 @@ import java.util.Date;
  */
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-
 public final class DateUtilities {
 
     private static final String FORMAT_DD_MM_YYYY = "dd/MM/yyyy";
@@ -44,21 +34,13 @@ public final class DateUtilities {
      * @return objeto {@code Date} que representa la fecha analizada, o {@code null} si la entrada es nulo
      */
     public static Date formatStringToDate(String date) {
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(FORMAT_DD_MM_YYYY);
-
         if (date != null) {
-
             LocalDate localDate = LocalDate.parse(date, formatter);
-
             return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-
         } else {
-
             return null;
-
         }
-
     }
 
 
@@ -73,15 +55,11 @@ public final class DateUtilities {
      * o {@code null} si la entrada es nula o no puede ser analizada
      */
     public static String formatDateString(String inputDate) {
-
         if (inputDate == null) {
-
             return null;
-
         }
 
         DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX");
-
         DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern(FORMAT_DD_MM_YYYY);
 
         try {

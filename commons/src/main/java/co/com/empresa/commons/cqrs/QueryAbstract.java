@@ -1,4 +1,4 @@
-package co.com.empresa.domain.common;
+package co.com.empresa.commons.cqrs;
 
 
 import co.com.empresa.commons.exception.DomainException;
@@ -17,56 +17,35 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class QueryAbstract<T, R> {
 
-
     /**
-     * Método Plantilla: Ejecuta el flujo de consulta.
+     * Metodo Plantilla: Ejecuta el flujo de consulta.
      *
      * @param context el contexto necesario para la consulta
      * @return el resultado de la consulta procesado
      * @throws DomainException si ocurre un error de negocio
      */
     public final R execute(T context) throws DomainException {
-
         try {
-
             // 1. Pre-procesamiento: Validaciones del contexto
-
             T validatedContext = preProcess(context);
-
-
             if (validatedContext == null) {
-
                 log.warn("La consulta {} fue invalidada en el pre-procesamiento", this.getClass().getSimpleName());
-
                 return null;
-
             }
 
-
             // 2. Procesamiento: Obtención y transformación de datos
-
             R result = process(validatedContext);
 
-
             // 3. Post-procesamiento: Formateo final o envoltorios
-
             return postProcess(result);
 
-
         } catch (DomainException e) {
-
             log.error("Error de negocio en la consulta {}: {}", this.getClass().getSimpleName(), e.getMessage());
-
             throw e;
-
         } catch (Exception e) {
-
             log.error("Error inesperado en la consulta {}: {}", this.getClass().getSimpleName(), e.getMessage(), e);
-
             throw new DomainException("Error interno al procesar la consulta");
-
         }
-
     }
 
 
@@ -97,23 +76,4 @@ public abstract class QueryAbstract<T, R> {
     protected R postProcess(R result) {
         return result;
     }
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

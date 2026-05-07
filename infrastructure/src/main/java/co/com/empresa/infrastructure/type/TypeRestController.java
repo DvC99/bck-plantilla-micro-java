@@ -1,4 +1,24 @@
-package co.com.empresa.infrastructure.type;import co.com.empresa.application.type.TypeFilterDto;import co.com.empresa.application.type.TypeRequestDto;import co.com.empresa.application.type.TypeResponseDto;import co.com.empresa.application.type.TypeUseCase;import co.com.empresa.commons.dto.request.PaginationRequest;import co.com.empresa.commons.dto.response.GenericResponse;import co.com.empresa.commons.helper.ApiResponseBuilder;import co.com.empresa.commons.services.i18.MessageService;import co.com.empresa.infrastructure.constants.RestConstants;import io.swagger.v3.oas.annotations.Operation;import io.swagger.v3.oas.annotations.tags.Tag;import jakarta.validation.Valid;import org.springframework.data.domain.Page;import org.springframework.web.bind.annotation.*;import java.util.List;/**
+package co.com.empresa.infrastructure.type;
+
+import co.com.empresa.application.type.TypeFilterDto;
+import co.com.empresa.application.type.TypeRequestDto;
+import co.com.empresa.application.type.TypeResponseDto;
+import co.com.empresa.application.type.TypeUseCase;
+import co.com.empresa.commons.dto.request.PaginationRequest;
+import co.com.empresa.commons.dto.response.GenericResponse;
+import co.com.empresa.commons.helper.ApiResponseBuilder;
+import co.com.empresa.commons.services.i18.MessageService;
+import co.com.empresa.infrastructure.common.BaseRestController;
+import co.com.empresa.infrastructure.constants.RestConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
  * REST controller for Type operations.
  * <p>
  * This controller provides endpoints for creating, updating, deleting, and retrieving types,
@@ -7,8 +27,18 @@ package co.com.empresa.infrastructure.type;import co.com.empresa.application.
 @RestController
 @RequestMapping(RestConstants.API_TYPE)
 @Tag(name = RestConstants.TAG_TYPE, description = RestConstants.DOC_TYPE_CONTROLLER)
-public class TypeRestController {
-    private final ApiResponseBuilder responseBuilder;    private final MessageService messageService;    private final TypeUseCase typeUseCase;    public TypeRestController(ApiResponseBuilder responseBuilder,                              MessageService messageService,                              TypeUseCase typeUseCase) {        this.responseBuilder = responseBuilder;        this.messageService = messageService;        this.typeUseCase = typeUseCase;    }        /**
+public class TypeRestController extends BaseRestController {
+
+    private final TypeUseCase typeUseCase;
+
+    public TypeRestController(ApiResponseBuilder responseBuilder,
+                              MessageService messageService,
+                              TypeUseCase typeUseCase) {
+        super(responseBuilder, messageService);
+        this.typeUseCase = typeUseCase;
+    }
+
+    /**
      * Creates a new type.
      *
      * @param request the type request DTO containing the data to create
@@ -18,10 +48,7 @@ public class TypeRestController {
     @Operation(summary = RestConstants.DOC_TYPE_CREATE)
     public GenericResponse<TypeResponseDto> create(@Valid @RequestBody TypeRequestDto request) {
         TypeResponseDto result = typeUseCase.create(request);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_CREATED)
-        );
+        return success(result, RestConstants.MSG_TYPE_CREATED);
     }
 
     /**
@@ -34,10 +61,7 @@ public class TypeRestController {
     @Operation(summary = RestConstants.DOC_TYPE_UPDATE)
     public GenericResponse<TypeResponseDto> update(@Valid @RequestBody TypeRequestDto request) {
         TypeResponseDto result = typeUseCase.update(request);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_UPDATED)
-        );
+        return success(result, RestConstants.MSG_TYPE_UPDATED);
     }
 
     /**
@@ -50,10 +74,7 @@ public class TypeRestController {
     @Operation(summary = RestConstants.DOC_TYPE_DELETE)
     public GenericResponse<TypeResponseDto> delete(@PathVariable Long id) {
         TypeResponseDto result = typeUseCase.delete(id);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_DELETED)
-        );
+        return success(result, RestConstants.MSG_TYPE_DELETED);
     }
 
     /**
@@ -66,10 +87,7 @@ public class TypeRestController {
     @Operation(summary = RestConstants.DOC_TYPE_GET_BY_ID)
     public GenericResponse<TypeResponseDto> getById(@PathVariable Long id) {
         TypeResponseDto result = typeUseCase.getById(id);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_FOUND)
-        );
+        return success(result, RestConstants.MSG_TYPE_FOUND);
     }
 
     /**
@@ -82,10 +100,7 @@ public class TypeRestController {
     @Operation(summary = RestConstants.DOC_TYPE_COMBO)
     public GenericResponse<TypeResponseDto> combo(TypeFilterDto filter) {
         List<TypeResponseDto> result = typeUseCase.getCombo(filter);
-        return responseBuilder.successList(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_LIST)
-        );
+        return successList(result, RestConstants.MSG_TYPE_LIST);
     }
 
     /**
@@ -101,9 +116,6 @@ public class TypeRestController {
             TypeFilterDto filter,
             PaginationRequest pagination) {
         Page<TypeResponseDto> result = typeUseCase.getComboPaginado(filter, pagination);
-        return responseBuilder.paginated(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_PAGE)
-        );
+        return paginated(result, RestConstants.MSG_TYPE_PAGE);
     }
-}
+}

@@ -90,17 +90,3 @@ public class PageableResultImpl<M> implements IPageableResult<M> {
         return (int) Math.ceil((double) totalElements / pageSize);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

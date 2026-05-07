@@ -1,4 +1,24 @@
-package co.com.empresa.infrastructure.typecategory;import co.com.empresa.application.typecategory.TypeCategoryFilterDto;import co.com.empresa.application.typecategory.TypeCategoryRequestDto;import co.com.empresa.application.typecategory.TypeCategoryResponseDto;import co.com.empresa.application.typecategory.TypeCategoryUseCase;import co.com.empresa.commons.dto.request.PaginationRequest;import co.com.empresa.commons.dto.response.GenericResponse;import co.com.empresa.commons.helper.ApiResponseBuilder;import co.com.empresa.commons.services.i18.MessageService;import co.com.empresa.infrastructure.constants.RestConstants;import io.swagger.v3.oas.annotations.Operation;import io.swagger.v3.oas.annotations.tags.Tag;import jakarta.validation.Valid;import org.springframework.data.domain.Page;import org.springframework.web.bind.annotation.*;import java.util.List;/**
+package co.com.empresa.infrastructure.typecategory;
+
+import co.com.empresa.application.typecategory.TypeCategoryFilterDto;
+import co.com.empresa.application.typecategory.TypeCategoryRequestDto;
+import co.com.empresa.application.typecategory.TypeCategoryResponseDto;
+import co.com.empresa.application.typecategory.TypeCategoryUseCase;
+import co.com.empresa.commons.dto.request.PaginationRequest;
+import co.com.empresa.commons.dto.response.GenericResponse;
+import co.com.empresa.commons.helper.ApiResponseBuilder;
+import co.com.empresa.commons.services.i18.MessageService;
+import co.com.empresa.infrastructure.common.BaseRestController;
+import co.com.empresa.infrastructure.constants.RestConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
  * REST controller for Type Category operations.
  * <p>
  * This controller provides endpoints for creating, updating, deleting, and retrieving type categories,
@@ -7,8 +27,18 @@ package co.com.empresa.infrastructure.typecategory;import co.com.empresa.appl
 @RestController
 @RequestMapping(RestConstants.API_TYPE_CATEGORY)
 @Tag(name = RestConstants.TAG_TYPE_CATEGORY, description = RestConstants.DOC_TYPE_CATEGORY_CONTROLLER)
-public class TypeCategoryRestController {
-    private final ApiResponseBuilder responseBuilder;    private final MessageService messageService;    private final TypeCategoryUseCase typeCategoryUseCase;    public TypeCategoryRestController(ApiResponseBuilder responseBuilder,                                      MessageService messageService,                                      TypeCategoryUseCase typeCategoryUseCase) {        this.responseBuilder = responseBuilder;        this.messageService = messageService;        this.typeCategoryUseCase = typeCategoryUseCase;    }        /**
+public class TypeCategoryRestController extends BaseRestController {
+
+    private final TypeCategoryUseCase typeCategoryUseCase;
+
+    public TypeCategoryRestController(ApiResponseBuilder responseBuilder,
+                                      MessageService messageService,
+                                      TypeCategoryUseCase typeCategoryUseCase) {
+        super(responseBuilder, messageService);
+        this.typeCategoryUseCase = typeCategoryUseCase;
+    }
+
+    /**
      * Creates a new type category.
      *
      * @param request the type category request DTO containing the data to create
@@ -18,10 +48,7 @@ public class TypeCategoryRestController {
     @Operation(summary = RestConstants.DOC_TYPE_CATEGORY_CREATE)
     public GenericResponse<TypeCategoryResponseDto> create(@Valid @RequestBody TypeCategoryRequestDto request) {
         TypeCategoryResponseDto result = typeCategoryUseCase.create(request);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_CATEGORY_CREATED)
-        );
+        return success(result, RestConstants.MSG_TYPE_CATEGORY_CREATED);
     }
 
     /**
@@ -34,10 +61,7 @@ public class TypeCategoryRestController {
     @Operation(summary = RestConstants.DOC_TYPE_CATEGORY_UPDATE)
     public GenericResponse<TypeCategoryResponseDto> update(@Valid @RequestBody TypeCategoryRequestDto request) {
         TypeCategoryResponseDto result = typeCategoryUseCase.update(request);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_CATEGORY_UPDATED)
-        );
+        return success(result, RestConstants.MSG_TYPE_CATEGORY_UPDATED);
     }
 
     /**
@@ -50,10 +74,7 @@ public class TypeCategoryRestController {
     @Operation(summary = RestConstants.DOC_TYPE_CATEGORY_DELETE)
     public GenericResponse<TypeCategoryResponseDto> delete(@PathVariable Long id) {
         TypeCategoryResponseDto result = typeCategoryUseCase.delete(id);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_CATEGORY_DELETED)
-        );
+        return success(result, RestConstants.MSG_TYPE_CATEGORY_DELETED);
     }
 
     /**
@@ -66,10 +87,7 @@ public class TypeCategoryRestController {
     @Operation(summary = RestConstants.DOC_TYPE_CATEGORY_GET_BY_ID)
     public GenericResponse<TypeCategoryResponseDto> getById(@PathVariable Long id) {
         TypeCategoryResponseDto result = typeCategoryUseCase.getById(id);
-        return responseBuilder.success(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_CATEGORY_FOUND)
-        );
+        return success(result, RestConstants.MSG_TYPE_CATEGORY_FOUND);
     }
 
     /**
@@ -82,10 +100,7 @@ public class TypeCategoryRestController {
     @Operation(summary = RestConstants.DOC_TYPE_CATEGORY_COMBO)
     public GenericResponse<TypeCategoryResponseDto> combo(TypeCategoryFilterDto filter) {
         List<TypeCategoryResponseDto> result = typeCategoryUseCase.getAll(filter);
-        return responseBuilder.successList(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_CATEGORY_LIST)
-        );
+        return successList(result, RestConstants.MSG_TYPE_CATEGORY_LIST);
     }
 
     /**
@@ -101,9 +116,6 @@ public class TypeCategoryRestController {
             TypeCategoryFilterDto filter,
             PaginationRequest pagination) {
         Page<TypeCategoryResponseDto> result = typeCategoryUseCase.getAllPaginado(filter, pagination);
-        return responseBuilder.paginated(
-                result,
-                messageService.getMessage(RestConstants.MSG_TYPE_CATEGORY_PAGE)
-        );
+        return paginated(result, RestConstants.MSG_TYPE_CATEGORY_PAGE);
     }
-}
+}

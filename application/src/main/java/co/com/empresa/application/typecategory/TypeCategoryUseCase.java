@@ -1,25 +1,19 @@
 package co.com.empresa.application.typecategory;
 
-
+import co.com.empresa.application.common.BaseUseCase;
 import co.com.empresa.commons.dto.request.PaginationRequest;
-
 import co.com.empresa.domain.typecategory.*;
-
 import org.springframework.data.domain.Page;
-
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.util.List;
-
 
 /**
  * Caso de uso para la orquestación de {@code TypeCategory}.
  */
 @Service
-public class TypeCategoryUseCase {
+public class TypeCategoryUseCase extends BaseUseCase {
 
     private final TypeCategoryCreateProcessor createProcessor;
     private final TypeCategoryUpdateProcessor updateProcessor;
@@ -67,7 +61,7 @@ public class TypeCategoryUseCase {
     @Transactional
     public TypeCategoryResponseDto create(TypeCategoryRequestDto request) {
         TypeCategory category = mapper.fromCreateDto(request);
-        TypeCategory saved = createProcessor.execute(new TypeCategoryCreateCommand(category));
+        TypeCategory saved = execute(createProcessor, new TypeCategoryCreateCommand(category));
         return mapper.toResponseDto(saved);
     }
 
@@ -81,7 +75,7 @@ public class TypeCategoryUseCase {
     @Transactional
     public TypeCategoryResponseDto update(TypeCategoryRequestDto request) {
         TypeCategory category = mapper.fromUpdateDto(request);
-        TypeCategory updated = updateProcessor.execute(new TypeCategoryUpdateCommand(category));
+        TypeCategory updated = execute(updateProcessor, new TypeCategoryUpdateCommand(category));
         return mapper.toResponseDto(updated);
     }
 
@@ -95,7 +89,7 @@ public class TypeCategoryUseCase {
     @Transactional
     public TypeCategoryResponseDto delete(Long id) {
         TypeCategory category = TypeCategory.builder().id(id).build();
-        TypeCategory deleted = deleteProcessor.execute(new TypeCategoryDeleteCommand(category));
+        TypeCategory deleted = execute(deleteProcessor, new TypeCategoryDeleteCommand(category));
         return mapper.toResponseDto(deleted);
     }
 
@@ -107,7 +101,7 @@ public class TypeCategoryUseCase {
      * @return DTO de respuesta con la información de la categoría
      */
     public TypeCategoryResponseDto getById(Long id) {
-        TypeCategory result = getByIdProcessor.execute(new GetTypeCategoryByIdQuery(id));
+        TypeCategory result = execute(getByIdProcessor, new GetTypeCategoryByIdQuery(id));
         return mapper.toResponseDto(result);
     }
 
@@ -120,7 +114,7 @@ public class TypeCategoryUseCase {
      */
     public List<TypeCategoryResponseDto> getAll(TypeCategoryFilterDto filterDto) {
         TypeCategory filter = mapper.fromFilterDto(filterDto);
-        List<TypeCategory> result = getAllProcessor.execute(new GetAllTypeCategoriesQuery(filter));
+        List<TypeCategory> result = execute(getAllProcessor, new GetAllTypeCategoriesQuery(filter));
         return mapper.toResponseDtoList(result);
     }
 
@@ -135,39 +129,10 @@ public class TypeCategoryUseCase {
     public Page<TypeCategoryResponseDto> getAllPaginado(TypeCategoryFilterDto filterDto, PaginationRequest pagination) {
         TypeCategory data = mapper.fromFilterDto(filterDto);
 
-        co.com.empresa.commons.dto.pageable.PageContext<TypeCategory> pageContext =
-                co.com.empresa.commons.dto.pageable.PageContext.<TypeCategory>builder()
-                        .data(data)
-                        .pageNumber(pagination.pageNumber())
-                        .pageSize(pagination.pageSize())
-                        .sortBy(pagination.sortBy())
-                        .sortDir(pagination.sortDir())
-                        .filterType(pagination.filterType())
-                        .build();
+        co.com.empresa.commons.dto.pageable.PageContext<TypeCategory> pageContext = pageContext(data, pagination);
 
-        Page<TypeCategory> result = getAllPaginadoProcessor.execute(new GetAllTypeCategoriesPaginadoQuery(pageContext));
+        Page<TypeCategory> result = execute(getAllPaginadoProcessor, new GetAllTypeCategoriesPaginadoQuery(pageContext));
+        assert result != null;
         return result.map(mapper::toResponseDto);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,7 +1,7 @@
 package co.com.empresa.domain.type;
 
 import co.com.empresa.commons.exception.DomainException;
-import co.com.empresa.domain.common.QueryAbstract;
+import co.com.empresa.commons.cqrs.QueryAbstract;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

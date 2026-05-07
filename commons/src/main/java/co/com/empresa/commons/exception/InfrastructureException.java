@@ -9,14 +9,11 @@ package co.com.empresa.commons.exception;
  */
 public class InfrastructureException extends RuntimeException {
 
-
     /**
      * Construye una nueva {@code InfrastructureException} sin mensaje ni causa.
      */
     public InfrastructureException() {
-
         super();
-
     }
 
 
@@ -26,9 +23,7 @@ public class InfrastructureException extends RuntimeException {
      * @param message el mensaje de detalle
      */
     public InfrastructureException(String message) {
-
         super(message);
-
     }
 
 
@@ -38,9 +33,7 @@ public class InfrastructureException extends RuntimeException {
      * @param cause la causa de la excepción
      */
     public InfrastructureException(Throwable cause) {
-
         super(cause);
-
     }
 
 
@@ -51,9 +44,6 @@ public class InfrastructureException extends RuntimeException {
      * @param cause   la causa de la excepción
      */
     public InfrastructureException(String message, Throwable cause) {
-
         super(message, cause);
-
     }
-
 }

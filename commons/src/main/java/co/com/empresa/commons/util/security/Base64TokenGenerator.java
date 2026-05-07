@@ -116,7 +116,7 @@ public class Base64TokenGenerator {
     }
 
     /**
-     * Método estático para generar un token rápidamente a partir de un payload.
+     * Metodo estático para generar un token rápidamente a partir de un payload.
      *
      * @param payload la cadena de texto a tokenizar
      * @return la cadena del token resultante
@@ -127,7 +127,7 @@ public class Base64TokenGenerator {
     }
 
     /**
-     * Método estático para decodificar un token.
+     * Metodo estático para decodificar un token.
      *
      * @param token el token a decodificar
      * @return la cadena decodificada

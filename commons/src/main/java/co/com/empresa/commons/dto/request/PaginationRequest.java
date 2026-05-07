@@ -14,20 +14,10 @@ package co.com.empresa.commons.dto.request;
  * @param filterType tipo de filtro aplicado a la consulta
  */
 public record PaginationRequest(
-
         Integer pageNumber,
-
-
         Integer pageSize,
-
-
         String sortBy,
-
-
         String sortDir,
-
-
         String filterType
-
 ) {
 }

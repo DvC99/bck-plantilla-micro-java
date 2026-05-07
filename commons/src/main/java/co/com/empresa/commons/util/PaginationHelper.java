@@ -18,7 +18,6 @@ import java.util.function.Function;
 /**
  * Clase utilitaria para manejar la conversión de resultados paginados.
  */
-
 public class PaginationHelper {
 
 
