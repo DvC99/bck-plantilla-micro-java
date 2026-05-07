@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Base64TokenService {
-
-
     /**
      * Genera un token de autorización basado en la entidad de servicio y la clase de servicio proporcionadas.
      *

@@ -8,16 +8,13 @@ package co.com.empresa.commons.exception;
  */
 public class DomainException extends RuntimeException {
 
-
     /**
      * Construye una nueva {@code DomainException} con el mensaje detallado especificado.
      *
      * @param message el mensaje de detalle
      */
     public DomainException(String message) {
-
         super(message);
-
     }
 
 
@@ -28,9 +25,6 @@ public class DomainException extends RuntimeException {
      * @param cause   la causa de la excepción
      */
     public DomainException(String message, Throwable cause) {
-
         super(message, cause);
-
     }
-
 }

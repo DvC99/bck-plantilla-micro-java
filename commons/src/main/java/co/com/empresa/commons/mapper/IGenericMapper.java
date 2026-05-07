@@ -56,7 +56,7 @@ public interface IGenericMapper<M, E> {
 
 
     /**
-     * Método utilitario para convertir una lista de entidades en modelos.
+     * Metodo utilitario para convertir una lista de entidades en modelos.
      *
      * @param entities lista de entidades a convertir
      * @return lista de modelos resultantes
@@ -69,7 +69,7 @@ public interface IGenericMapper<M, E> {
 
 
     /**
-     * Método utilitario para convertir una lista de modelos en entidades.
+     * Metodo utilitario para convertir una lista de modelos en entidades.
      *
      * @param models lista de modelos a convertir
      * @return lista de entidades resultantes

@@ -1,10 +1,8 @@
 package co.com.empresa.commons.constants;
 
-
 import lombok.AccessLevel;
 
 import lombok.NoArgsConstructor;
-
 
 /**
  * Constantes para las claves de mensajes internacionalizados.
@@ -15,11 +13,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class MessageKeys {
 
-
     // ========================================
-
     // MENSAJES DE EXITO
-
     // ========================================
 
     /**
@@ -54,9 +49,7 @@ public final class MessageKeys {
 
 
     // ========================================
-
     // ERRORES GENERALES
-
     // ========================================
 
     /**
@@ -91,9 +84,7 @@ public final class MessageKeys {
 
 
     // ========================================
-
     // ERRORES DE VALIDACION
-
     // ========================================
 
     /**
@@ -122,7 +113,7 @@ public final class MessageKeys {
     public static final String ERROR_JSON_INVALID = "error.json.invalid";
 
     /**
-     * Clave para el método no soportado.
+     * Clave para el metodo no soportado.
      */
     public static final String ERROR_METHOD_NOT_SUPPORTED = "error.method.not.supported";
 
@@ -143,9 +134,7 @@ public final class MessageKeys {
 
 
     // ========================================
-
     // ERRORES DE BASE DE DATOS
-
     // ========================================
 
     /**
@@ -160,9 +149,7 @@ public final class MessageKeys {
 
 
     // ========================================
-
     // ERRORES DE DOMINIO (existentes)
-
     // ========================================
 
     /**
@@ -192,9 +179,7 @@ public final class MessageKeys {
 
 
     // ========================================
-
     // ERRORES DE INFRAESTRUCTURA (existentes)
-
     // ========================================
 
     /**

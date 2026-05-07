@@ -73,15 +73,3 @@ public interface TypeApplicationMapper {
      */
     List<TypeResponseDto> toResponseDtoList(List<Type> models);
 }
-
-
-
-
-
-
-
-
-
-
-
-

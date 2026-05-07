@@ -90,28 +90,3 @@ public final class DomainErrors {
     public static final String ERROR_TYPE_CODE_DUPLICATE = "error.domain.valid.type.code.duplicate";
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

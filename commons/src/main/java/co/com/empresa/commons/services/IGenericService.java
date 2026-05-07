@@ -16,8 +16,6 @@ import java.util.List;
  * @param <K> el tipo de la clave primaria
  */
 public interface IGenericService<M, K> {
-
-
     /**
      * Obtiene una lista paginada de elementos con opciones de ordenamiento y filtrado.
      *
@@ -108,21 +106,3 @@ public interface IGenericService<M, K> {
     K getNextId();
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

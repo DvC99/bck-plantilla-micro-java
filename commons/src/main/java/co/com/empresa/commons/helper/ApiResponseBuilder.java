@@ -6,7 +6,6 @@ import co.com.empresa.commons.services.i18.MessageService;
 import co.com.empresa.commons.services.pageable.IPageableResult;
 import co.com.empresa.commons.services.pageable.PageableResultImpl;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -26,8 +25,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class ApiResponseBuilder {
-
-    @Autowired
     private final MessageService messageService;
 
     /**

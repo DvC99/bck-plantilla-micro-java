@@ -3,7 +3,7 @@ package co.com.empresa.domain.typecategory;
 import co.com.empresa.commons.dto.request.PaginationRequest;
 import co.com.empresa.commons.exception.DomainException;
 import co.com.empresa.commons.services.pageable.IPageableResult;
-import co.com.empresa.domain.common.PaginatedQueryAbstract;
+import co.com.empresa.commons.cqrs.PaginatedQueryAbstract;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Function;

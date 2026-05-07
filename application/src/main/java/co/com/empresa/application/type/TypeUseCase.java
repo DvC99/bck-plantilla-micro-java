@@ -1,8 +1,8 @@
 package co.com.empresa.application.type;
 
 
+import co.com.empresa.application.common.BaseUseCase;
 import co.com.empresa.commons.dto.request.PaginationRequest;
-
 import co.com.empresa.domain.type.*;
 
 import org.springframework.data.domain.Page;
@@ -19,7 +19,7 @@ import java.util.List;
  * Caso de uso para la orquestación de {@code Type}.
  */
 @Service
-public class TypeUseCase {
+public class TypeUseCase extends BaseUseCase {
 
     private final TypeCreateProcessor createProcessor;
     private final TypeUpdateProcessor updateProcessor;
@@ -67,7 +67,7 @@ public class TypeUseCase {
     @Transactional
     public TypeResponseDto create(TypeRequestDto request) {
         Type type = mapper.fromCreateDto(request);
-        Type saved = createProcessor.execute(new TypeCreateCommand(type));
+        Type saved = execute(createProcessor, new TypeCreateCommand(type));
         return mapper.toResponseDto(saved);
     }
 
@@ -81,7 +81,7 @@ public class TypeUseCase {
     @Transactional
     public TypeResponseDto update(TypeRequestDto request) {
         Type type = mapper.fromUpdateDto(request);
-        Type updated = updateProcessor.execute(new TypeUpdateCommand(type));
+        Type updated = execute(updateProcessor, new TypeUpdateCommand(type));
         return mapper.toResponseDto(updated);
     }
 
@@ -95,7 +95,7 @@ public class TypeUseCase {
     @Transactional
     public TypeResponseDto delete(Long id) {
         Type type = Type.builder().id(id).build();
-        Type deleted = deleteProcessor.execute(new TypeDeleteCommand(type));
+        Type deleted = execute(deleteProcessor, new TypeDeleteCommand(type));
         return mapper.toResponseDto(deleted);
     }
 
@@ -107,7 +107,7 @@ public class TypeUseCase {
      * @return DTO de respuesta con la información del tipo
      */
     public TypeResponseDto getById(Long id) {
-        Type result = getByIdProcessor.execute(new GetTypeByIdQuery(id));
+        Type result = execute(getByIdProcessor, new GetTypeByIdQuery(id));
         return mapper.toResponseDto(result);
     }
 
@@ -120,7 +120,7 @@ public class TypeUseCase {
      */
     public List<TypeResponseDto> getCombo(TypeFilterDto filterDto) {
         Type filter = mapper.fromFilterDto(filterDto);
-        List<Type> result = getComboProcessor.execute(new GetTypesByTypeCategoryQuery(filter));
+        List<Type> result = execute(getComboProcessor, new GetTypesByTypeCategoryQuery(filter));
         return mapper.toResponseDtoList(result);
     }
 
@@ -135,21 +135,13 @@ public class TypeUseCase {
     public Page<TypeResponseDto> getComboPaginado(TypeFilterDto filterDto, PaginationRequest pagination) {
         Type filter = mapper.fromFilterDto(filterDto);
 
-        co.com.empresa.commons.dto.pageable.PageContext<Type> pageContext =
-                co.com.empresa.commons.dto.pageable.PageContext.<Type>builder()
-                        .data(filter)
-                        .pageNumber(pagination.pageNumber())
-                        .pageSize(pagination.pageSize())
-                        .sortBy(pagination.sortBy())
-                        .sortDir(pagination.sortDir())
-                        .filterType(pagination.filterType())
-                        .build();
+        co.com.empresa.commons.dto.pageable.PageContext<Type> pageContext = pageContext(filter, pagination);
 
-        Page<Type> result = getComboPaginadoProcessor.execute(new GetTypesByTypeCategoryPaginadoQuery(pageContext));
+        Page<Type> result = execute(getComboPaginadoProcessor, new GetTypesByTypeCategoryPaginadoQuery(pageContext));
+        assert result != null;
         return result.map(mapper::toResponseDto);
     }
 }
-
 
 
 

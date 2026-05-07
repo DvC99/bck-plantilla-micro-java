@@ -1,11 +1,11 @@
-package co.com.empresa.domain.common;
+package co.com.empresa.commons.cqrs;
 
 
 import co.com.empresa.commons.exception.DomainException;
 
 import co.com.empresa.commons.services.IGenericService;
 
-import co.com.empresa.domain.constants.DomainErrors;
+import co.com.empresa.commons.constants.MessageKeys;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,9 +23,7 @@ import java.util.List;
  */
 @Slf4j
 public abstract class ComboQueryAbstract<T, K> extends QueryAbstract<T, List<T>> {
-
     private final IGenericService<T, K> service;
-
 
     /**
      * Constructor para {@code ComboQueryAbstract} con el servicio genérico especificado.
@@ -33,9 +31,7 @@ public abstract class ComboQueryAbstract<T, K> extends QueryAbstract<T, List<T>>
      * @param service el servicio genérico utilizado para las operaciones de combo
      */
     protected ComboQueryAbstract(IGenericService<T, K> service) {
-
         this.service = service;
-
     }
 
 
@@ -47,17 +43,11 @@ public abstract class ComboQueryAbstract<T, K> extends QueryAbstract<T, List<T>>
      */
     @Override
     protected T preProcess(T context) throws DomainException {
-
-        if (context == null) {
-
-            log.error(DomainErrors.ERROR_CONTEXTO_EMPTY);
-
-            throw new DomainException(DomainErrors.ERROR_CONTEXTO_EMPTY);
-
-        }
-
+if (context == null) {
+             log.error(MessageKeys.ERROR_DOMAIN_VALID_CONTEXTO_NULL);
+             throw new DomainException(MessageKeys.ERROR_DOMAIN_VALID_CONTEXTO_NULL);
+         }
         return context;
-
     }
 
 
@@ -69,10 +59,7 @@ public abstract class ComboQueryAbstract<T, K> extends QueryAbstract<T, List<T>>
      */
     @Override
     protected List<T> process(T context) {
-
         return this.service.getComboSencillo(context);
-
     }
-
 }
 

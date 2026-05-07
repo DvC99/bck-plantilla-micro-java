@@ -1,5 +1,4 @@
-package co.com.empresa.domain.common;
-
+package co.com.empresa.commons.cqrs;
 
 import co.com.empresa.commons.services.pageable.IPageableResult;
 
@@ -9,7 +8,6 @@ import org.springframework.data.domain.Page;
 
 
 import java.util.function.Function;
-
 
 /**
  * Especialización de {@code QueryAbstract} para manejar consultas paginadas.
@@ -32,26 +30,19 @@ public abstract class PaginatedQueryAbstract<C, M, R> extends QueryAbstract<C, P
      */
     @Override
     protected Page<R> process(C context) {
-
         // 1. Obtener el resultado paginado crudo del repositorio/servicio
-
         IPageableResult<M> rawResult = fetchPage(context);
 
-
         // 2. Definir el mapeador de Modelo -> DTO
-
         Function<M, R> mapper = getMapper();
 
-
         // 3. Utilizar el PaginationHelper para convertir el resultado a Page<R>
-
         return PaginationHelper.mapPage(rawResult, mapper);
-
     }
 
 
     /**
-     * Método que debe implementar la subclase para obtener los datos de la fuente.
+     * Metodo que debe implementar la subclase para obtener los datos de la fuente.
      *
      * @param context contexto validado
      * @return el resultado paginado en términos de modelos de dominio
@@ -60,23 +51,9 @@ public abstract class PaginatedQueryAbstract<C, M, R> extends QueryAbstract<C, P
 
 
     /**
-     * Método que debe implementar la subclase para definir cómo mapear el modelo al {@code DTO}.
+     * Metodo que debe implementar la subclase para definir cómo mapear el modelo al {@code DTO}.
      *
      * @return la función de mapeo
      */
     protected abstract Function<M, R> getMapper();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

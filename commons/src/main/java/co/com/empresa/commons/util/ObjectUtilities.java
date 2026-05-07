@@ -1,32 +1,20 @@
 package co.com.empresa.commons.util;
 
-
 import co.com.empresa.commons.exception.InfrastructureException;
-
 import lombok.AccessLevel;
-
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.beanutils.BeanUtils;
-
 import org.apache.commons.beanutils.PropertyUtils;
-
-
 import java.lang.reflect.Array;
-
 import java.util.ArrayList;
-
 import java.util.List;
-
 
 /**
  * Clase de utilidad para manejar atributos de objetos.
  */
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-
 public final class ObjectUtilities {
-
 
     /**
      * Recupera el valor de un atributo especificado de un objeto.

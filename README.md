@@ -28,10 +28,8 @@ only point inwards.
 
 ### 📦 Module Structure
 
-- **`domain`**: The heart of the software. Contains business entities, domain services, and ports (interfaces). **Zero
-  external dependencies.**
-- **`application`**: The orchestrator. Contains Use Cases, DTOs, and Mappers. Coordinates data flow between domain and
-  infrastructure.
+- **`domain`**: The heart of the software. Contains business entities, domain services, and ports (interfaces). Lombok is permitted to reduce boilerplate code.
+- **`application`**: The orchestrator. Contains Use Cases, DTOs, and Mappers. Coordinates data flow between domain and infrastructure.
 - **`infrastructure`**: The technical detail. Contains database adapters (JPA), external API clients, gRPC/REST
   controllers, and the `MainApplication` bootstrap.
 - **`commons`**: Shared cross-cutting utilities and base classes used across the project.

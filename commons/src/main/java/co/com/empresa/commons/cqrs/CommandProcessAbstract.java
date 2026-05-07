@@ -1,4 +1,4 @@
-package co.com.empresa.domain.common;
+package co.com.empresa.commons.cqrs;
 
 import co.com.empresa.commons.exception.DomainException;
 import lombok.extern.slf4j.Slf4j;
