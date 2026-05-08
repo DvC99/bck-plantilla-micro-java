@@ -14,143 +14,100 @@ The project is divided into four primary modules:
 ### 🛠️ Tech Stack
 
 - **Java 25** (LTS)
-
 - **Spring Boot 4.0.0**
-
 - **Spring Framework 7.0.1**
-
-- **Database:** PostgreSQL
-
-- **Messaging:** Apache Kafka
-
-- **API Documentation:** OpenAPI / Swagger
-
-- **Build Tool:** Gradle
+- **Database:** PostgreSQL (Supabase compatible)
+- **Messaging:** Apache Kafka (optional, conditional on `app.messaging.kafka.enabled`)
+- **API Documentation:** OpenAPI 3.0 / Swagger UI
+- **Build Tool:** Gradle 9.x
+- **gRPC:** Netty-shaded 1.63.0
 
 ### 1. Domain Module (`domain`)
 
-The **Heart of the Software**. It is a Java library with zero dependencies on other modules or external frameworks
-(except for basic java utilities and Lombok to reduce boilerplate).
+The **Heart of the Software**. A Java library with zero dependencies on Spring or JPA (except Lombok for boilerplate reduction).
 
-- **Entities:** Rich domain objects with internal validation.
-
-- **Ports (Interfaces):** Definitions of what the domain needs from the outside (e.g., `ITypeRepository`).
-
-- **Domain Services:** Business logic that doesn't belong to a single entity.
-
-- **Processors (CQRS):** Specialized classes that implement a standardized lifecycle (Pre-process $\rightarrow$
-  Process $\rightarrow$ Post-process) to execute Commands and Queries.
-
-- **Commands & Queries:** Immutable records that encapsulate the intent and data of a specific business operation.
-
-- **CQRS Templates:** Stateless base classes for Commands and Queries (located in `commons`).
+- **Entities:** Rich domain objects with internal validation (`validate()`).
+- **Ports (Interfaces):** Definitions of what the domain needs from the outside (e.g., `ITypeRepository`, `IEventPublisher`).
+- **Domain Services:** Business logic that doesn't belong to a single entity (e.g., `TypeDomainService`, `TypeCategoryDomainService`). Registered as Spring beans in `infrastructure/config/domain/DomainServicesConfig.java`.
+- **Processors (CQRS):** Specialized classes that implement a standardized lifecycle (`preProcess` → `process` → `postProcess`).
+- **Commands & Queries:** Immutable records encapsulating the intent and data of a specific operation.
 
 ### 2. Application Module (`application`)
 
-The **Orchestrator**. It is a Java library that coordinates the flow of data between the domain and the infrastructure.
+The **Orchestrator**. Coordinates the flow of data between the domain and the infrastructure.
 
-- **Use Cases:** High-level orchestrators that execute domain services and return DTOs.
-
-- **DTOs:** Data Transfer Objects for input and output.
-
-- **Mappers:** Conversion between Domain $\leftrightarrow$ Application DTOs.
-
-- **BaseUseCase:** Helpers to execute processors and build `PageContext` consistently.
+- **Use Cases:** High-level orchestrators (e.g., `TypeUseCase`, `TypeCategoryUseCase`) that execute domain processors and return DTOs.
+- **DTOs:** `TypeRequestDto`, `TypeResponseDto`, `TypeFilterDto`, etc.
+- **Mappers:** Conversion between Domain ↔ Application DTOs using MapStruct.
+- **BaseUseCase:** Shared base class (`application/common/BaseUseCase.java`) providing `executeProcessor()` and `buildPageContext()` to standardize orchestration.
+- **Error Handling:** `application/config/exception/ErrorHandlerConfig.java` — global `@ControllerAdvice`.
 
 ### 3. Infrastructure Module (`infrastructure`)
 
 The **Technical Detail**. Implementation of ports and external interfaces.
 
-- **Adapters:** Concrete implementations of domain ports (e.g., JPA Repositories).
+- **Adapters (JPA):** Concrete implementations of domain repository ports.
+- **Controllers:** REST endpoints that delegate to application use cases.
+- **BaseRestController:** (`infrastructure/common/BaseRestController.java`) — provides `success()`, `successList()`, `paginated()` helpers to all controllers.
+- **Generic Services:** `GenericServiceImpl` provides standard CRUD + dynamic filtering + pagination.
+- **Entities (DB):** JPA Entities mapping to the database schema.
+- **Dual Datasource:** Separate `CommandJpaConfig` and `QueryJpaConfig` with independent Hikari pools.
+- **Event Audit:** `EventAuditServiceImpl` + `KafkaEventListenerAspect` for idempotent Kafka consumption.
+- **Domain Beans Config:** `DomainServicesConfig` registers `TypeDomainService` and `TypeCategoryDomainService` as Spring beans without polluting the domain with `@Service`.
 
-- **Controllers:** REST endpoints that trigger application use cases.
+### 4. Commons Module (`commons`)
 
-- **Generic Services:** Centralized CRUD logic to avoid repetition.
+**Shared primitives** used across all modules with no business-specific knowledge.
 
-- **BaseRestController:** Standard helpers for `success`, `successList`, and `paginated` responses.
-
-- **Entities (DB):** JPA Entities that map to the database schema.
+- **CQRS Templates:** `CommandProcessAbstract`, `QueryAbstract`, `PaginatedQueryAbstract`, `ComboQueryAbstract` (in `commons/cqrs/`).
+- **Response Builder:** `ApiResponseBuilder` + `GenericResponse<T>`.
+- **Exceptions:** `DomainException`, `ApplicationException`, `InfrastructureException`.
+- **i18n:** `MessageService`, `MessageKeys` constants.
+- **Utilities:** `PaginationHelper`, `DateUtilities`, `ObjectUtilities`, `Cripto`, `Base64TokenService`.
+- **Interfaces:** `IGenericService`, `IRepository`, `ICommandRepository`, `IQueryRepository`, `IAuditable`.
 
 ## 🗺️ Request Flow Diagram
 
 ```mermaid
-
 sequenceDiagram
-
     participant Client
-
     participant Controller (Infra)
-
     participant UseCase (App)
-
     participant Processor (Domain)
-
     participant RepositoryImpl (Infra)
-
     participant Database
 
-
-
     Client->>Controller: HTTP Request (DTO)
-
     Controller->>UseCase: Execute Use Case (DTO)
-
     UseCase->>Processor: execute(Command/Query Record)
-
     Processor->>RepositoryImpl: Port Call (Domain Object)
-
     RepositoryImpl->>Database: SQL/JPA Query
-
     Database-->>RepositoryImpl: DB Entity
-
     RepositoryImpl-->>Processor: Domain Object
-
     Processor-->>UseCase: Domain Object
-
     UseCase-->>Controller: Response DTO
-
     Controller-->>Client: HTTP Response (JSON)
-
 ```
-
-### 4. Commons Module (`commons`)
-
-Shared primitives used across modules (responses, i18n, CQRS templates, utilities).
 
 ## 🔌 Project Bootstrap
 
-To avoid dependency cycles and ensure correct component scanning, the project follows these rules:
+To avoid dependency cycles and ensure correct component scanning:
 
-- **Entry Point:** The `MainApplication` class is located in the `infrastructure` module
-  (`co.com.empresa.infrastructure`).
-
-- **Configuration Strategy:** All technical configurations (Kafka, JPA, Async, OpenAPI, i18n) are placed in the
-  `infrastructure` layer.
-
-- **Component Scanning:** `MainApplication` uses an explicit `@ComponentScan` to include `infrastructure`,
-  `application`, `domain`, and `commons` packages.
-
-- **Dependency Flow:** All dependencies point inwards: `Infrastructure` $\rightarrow$ `Application` $\rightarrow$
-  `Domain` $\rightarrow$ `Commons`.
+- **Entry Point:** `MainApplication` is located in the `infrastructure` module (`co.com.empresa.infrastructure`).
+- **Configuration Strategy:** All technical configurations (Kafka, JPA, Async, OpenAPI, i18n) are placed in `infrastructure`.
+- **Component Scanning:** `MainApplication` uses explicit `@ComponentScan` to include `infrastructure`, `application`, `domain`, and `commons` packages.
+- **Dependency Flow:** `Infrastructure` → `Application` → `Domain` → `Commons`.
 
 ### 🤖 Intelligent Agent Framework
 
-The project is developed and maintained using a multi-agent system located in the `.agents/` directory. This framework
-ensures that all changes adhere to the architectural standards via automated governance and specialized skills.
-
-For more details on how the agents operate, see the **[Agent Framework Documentation](../agents/overview.md)**.
+The project uses a multi-agent system in `.agents/` to ensure architectural compliance. For details, see **[Agent Framework Documentation](../agents/overview.md)**.
 
 ## 🔑 Core Principles
 
-- **Dependency Rule:** Dependencies only point inwards: `Infrastructure` $\rightarrow$ `Application` $\rightarrow$
-  `Domain` $\rightarrow$ `Commons`.
-
+- **Dependency Rule:** Dependencies only point inwards: `Infrastructure` → `Application` → `Domain` → `Commons`.
 - **Statelessness:** All handlers and services are Spring Singletons and stateless.
-
-- **Feature-based Packaging:** Code is organized by business feature (e.g., `/type`, `/typecategory`) rather than by
-  technical layer.
-
-- **Fail Fast:** Validation occurs at the DTO level (Application) and at the Entity level (Domain).
+- **Feature-based Packaging:** Code is organized by business feature (e.g., `/type`, `/typecategory`, `/event`) rather than by technical layer.
+- **Fail Fast:** Validation occurs at the DTO level (Application) and at the Domain Entity level.
+- **Domain Purity:** Domain module has zero Spring/JPA annotations. `@Service` beans for domain services are declared in `infrastructure/config/domain/`.
 
 👉 *For deeper insights into the reasoning behind these decisions, see the **[FAQ](./faq.md)**.*
-
