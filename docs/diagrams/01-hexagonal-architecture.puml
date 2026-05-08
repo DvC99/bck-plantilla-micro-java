@@ -1,0 +1,172 @@
+@startuml 01-hexagonal-architecture
+!theme plain
+skinparam backgroundColor #FAFAFA
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+skinparam ArrowColor #444444
+skinparam shadowing false
+
+title Arquitectura Hexagonal — BCK-Plantilla\n(Estructura de Módulos y Dependencias)
+
+skinparam package {
+  BackgroundColor<<commons>>   #E8F5E9
+  BorderColor<<commons>>       #2E7D32
+  FontColor<<commons>>         #1B5E20
+  BackgroundColor<<domain>>    #E3F2FD
+  BorderColor<<domain>>        #1565C0
+  FontColor<<domain>>          #0D47A1
+  BackgroundColor<<app>>       #FFF8E1
+  BorderColor<<app>>           #F57F17
+  FontColor<<app>>             #E65100
+  BackgroundColor<<infra>>     #FCE4EC
+  BorderColor<<infra>>         #880E4F
+  FontColor<<infra>>           #4A0022
+}
+
+package "commons" <<commons>> {
+  [CommandProcessAbstract] as CPA
+  [QueryAbstract] as QA
+  [PaginatedQueryAbstract] as PQA
+  [ComboQueryAbstract] as CQA
+  [ApiResponseBuilder] as ARB
+  [GenericResponse<T>] as GR
+  [MessageService / MessageKeys] as MS
+  [IGenericService / IRepository] as IGS
+  [Excepciones (Domain/App/Infra)] as EXC
+  [Utilidades (Pagination, Date, Cripto)] as UTL
+}
+
+package "domain" <<domain>> {
+  package "type" {
+    [Type (Entity)] as TE
+    [TypeDomainService] as TDS
+    [TypeCreate/Update/DeleteProcessor] as TCP
+    [TypeGetById/Combo/PaginadoProcessor] as TQP
+    [ITypeRepository (Port)] as ITR
+    [ITypeService (Port)] as ITS
+  }
+  package "typecategory" {
+    [TypeCategory (Entity)] as TCE
+    [TypeCategoryDomainService] as TCDS
+    [TypeCategoryCreate/DeleteProcessor] as TCCP
+    [TypeCategoryGetAll/ById/PaginadoProcessor] as TCQP
+    [ITypeCategoryRepository (Port)] as ITCR
+    [ITypeCategoryService (Port)] as ITCS
+  }
+  package "event" {
+    [IEventAuditRepository (Port)] as IEAR
+    [IEventAuditService (Port)] as IEAS
+    [IEventPublisher (Port)] as IEP
+    [EventEnvelope (Record)] as EE
+  }
+}
+
+package "application" <<app>> {
+  [BaseUseCase] as BUC
+  package "type (app)" {
+    [TypeUseCase] as TUC
+    [TypeRequestDto / TypeResponseDto] as TDTO
+    [TypeApplicationMapper] as TAM
+  }
+  package "typecategory (app)" {
+    [TypeCategoryUseCase] as TCUC
+    [TypeCategoryRequestDto / ResponseDto] as TCDTO
+    [TypeCategoryApplicationMapper] as TCAM
+  }
+  [ErrorHandlerConfig\n(@ControllerAdvice)] as EHC
+}
+
+package "infrastructure" <<infra>> {
+  [MainApplication\n(@SpringBootApplication)] as MAIN
+
+  package "REST" {
+    [BaseRestController] as BRC
+    [TypeRestController] as TRC
+    [TypeCategoryRestController] as TCRC
+    [EventAuditRestController] as EARC
+  }
+
+  package "JPA Adapters" {
+    [TypeServiceImpl] as TSI
+    [TypeRepositoryImpl] as TRI
+    [TypeCategoryServiceImpl] as TCSI
+    [TypeCategoryRepositoryImpl] as TCRI
+    [EventAuditRepositoryImpl] as EARI
+    [EventAuditServiceImpl] as EASI
+    [EventAuditRepository\n(JpaRepository)] as EAR_JPA
+  }
+
+  package "Messaging" {
+    [KafkaEventPublisher] as KEP
+    [KafkaEventListenerAspect] as KELA
+  }
+
+  package "Config" {
+    [CommandJpaConfig] as CJC
+    [QueryJpaConfig] as QJC
+    [DomainServicesConfig] as DSC
+    [KafkaConfig] as KC
+    [WebConfig / OpenApiConfig] as WC
+  }
+
+  package "DB (PostgreSQL)" {
+    database "CommandDB\n(Hikari Pool)" as CDB
+    database "QueryDB\n(Hikari Pool)" as QDB
+  }
+}
+
+' ── Regla de dependencias ──────────────────────────────────
+infra -[hidden]right-> app
+app  -[hidden]right-> domain
+domain -[hidden]right-> commons
+
+' ── Herencias CQRS ────────────────────────────────────────
+TCP --|> CPA : extends
+TCCP --|> CPA : extends
+TQP --|> QA  : extends
+TCQP --|> QA : extends
+
+' ── UseCases extienden BaseUseCase ─────────────────────────
+TUC  --|> BUC : extends
+TCUC --|> BUC : extends
+
+' ── Controllers extienden BaseRestController ───────────────
+TRC  --|> BRC : extends
+TCRC --|> BRC : extends
+EARC --|> BRC : extends
+
+' ── Flujo principal ────────────────────────────────────────
+TRC  --> TUC   : delega
+TCRC --> TCUC  : delega
+TUC  --> TCP   : execute(Command)
+TUC  --> TQP   : execute(Query)
+TCUC --> TCCP  : execute(Command)
+TCUC --> TCQP  : execute(Query)
+TCP  --> ITR   : usa port
+TQP  --> ITR   : usa port
+TCCP --> ITCR  : usa port
+TCQP --> ITCR  : usa port
+ITR  ..> TRI   : implemented by
+ITCR ..> TCRI  : implemented by
+IEAR ..> EARI  : implemented by
+IEAS ..> EASI  : implemented by
+IEP  ..> KEP   : implemented by
+
+' ── Config ────────────────────────────────────────────────
+DSC --> TDS  : @Bean
+DSC --> TCDS : @Bean
+CJC --> CDB
+QJC --> QDB
+
+note bottom of domain
+  **Domain Purity**
+  Sin @Entity ni @Service.
+  Solo POJOs + Lombok.
+end note
+
+note bottom of commons
+  **Regla de dependencias**
+  Infra → App → Domain → Commons
+end note
+
+@enduml
