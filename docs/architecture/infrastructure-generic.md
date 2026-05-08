@@ -1,61 +1,156 @@
 # Infrastructure Pragmatism: Generic Implementation
 
-## 🚀 The Boilerplate Problem
+## The Boilerplate Problem
 
-Standard Hexagonal Architecture often leads to "Class Explosion": for every entity, you end up with a ServiceImpl, a
-RepositoryImpl, and 5-6 nearly identical CRUD methods.
+Standard Hexagonal Architecture often leads to "Class Explosion": for every entity, you end up with a `ServiceImpl`,
+a `RepositoryImpl`, and 5–6 nearly identical CRUD methods that copy-paste across every feature.
 
-## 🛠️ The Solution: `GenericServiceImpl`
+---
 
-We implemented a generic engine in the infrastructure layer that handles the most common operations using Spring Data
-JPA's `ExampleMatcher` and `Pageable`.
+## Solution 1: `AbstractRepositoryImpl<M, E, K>`
 
-### 1. Core Capabilities
+Located at `infrastructure/common/AbstractRepositoryImpl.java`, this generic abstract class implements **all ten methods
+of the `IRepository<M, K>` contract** once. Every feature's `*RepositoryImpl` simply extends it and provides the three
+constructor dependencies.
 
-The `GenericServiceImpl` provides:
+### What it provides automatically
 
-- **Standard CRUD:** Save, Update, Delete, FindById.
-- **Advanced Filtering:** Uses `Example` for dynamic queries.
-- **Pagination:** Integrated with `PaginationRequest` to handle sorting and paging.
-- **Combo-Lists:** Specialized methods to return lightweight DTOs for dropdowns/combos.
+- `findAll(Example<M>, Pageable)` — with entity-level Example mapping via the mapper
+- `findAll(Example<M>)` — list variant
+- `findById(K)` — delegates to query JPA repo
+- `existsById(K)` — delegates to query JPA repo
+- `save(M)`, `saveAll(Iterable<M>)` — delegates to command JPA repo
+- `update(M)`, `updateAll(Iterable<M>)` — delegates to command JPA repo
+- `delete(K)` — `deleteById` on command JPA repo
+- `deleteAll(Iterable<K>)` — `deleteAllByIdInBatch` for bulk deletes
 
-### 2. Implementation Example
+### What the subclass provides
 
-Instead of writing `save()` in every service, we extend the generic base:
+- **Constructor call** with `commandJpaRepository`, `queryJpaRepository`, and `mapper`.
+- **`getNextValSequence()`** override, delegating to the query JPA repository's native `@Query`.
+
+### Before vs After
 
 ```java
-@Service
-public class TypeServiceImpl extends GenericServiceImpl<TypeEntity, TypeRepository, Type, TypeEntity> {
-    // Only implement specialized business logic here
-    // CRUD is inherited automatically
+// BEFORE — ~200 lines, 10 methods copy-pasted per feature
+@Repository
+@Transactional
+public class TypeCategoryRepositoryImpl implements ITypeCategoryRepository {
+    // 200 lines of identical plumbing
+}
+
+// AFTER — ~15 lines, only what is unique
+@Repository
+@Transactional
+public class TypeCategoryRepositoryImpl
+        extends AbstractRepositoryImpl<TypeCategory, TypeCategoryEntity, Long>
+        implements ITypeCategoryRepository {
+
+    private final ITypeCategoryQueryJpaRepository queryJpaRepository;
+
+    public TypeCategoryRepositoryImpl(ITypeCategoryCommandJpaRepository cmd,
+                                      ITypeCategoryQueryJpaRepository qry,
+                                      TypeCategoryInfrastructureMapper mapper) {
+        super(cmd, qry, mapper);
+        this.queryJpaRepository = qry;
+    }
+
+    @Override
+    public Long getNextValSequence() {
+        return queryJpaRepository.getNextValSequence();
+    }
 }
 ```
 
-## 📦 The Pagination Pipeline
+---
 
-To keep the Domain pure, we use a specific pipeline for paginated results:
+## Solution 2: `IJpaCommandRepository` and `IJpaQueryRepository`
+
+Base marker interfaces (`@NoRepositoryBean`) that replace the anonymous `extends JpaRepository<E,K>` in every
+feature-specific JPA interface. They serve two purposes:
+
+1. **Documentation**: make the CQRS datasource binding explicit in the type hierarchy.
+2. **Convention enforcement**: any future tooling or governance audit can detect repos that don't follow the separation.
+
+```java
+// command base — infrastructure/adapters/output/repositories/command/IJpaCommandRepository.java
+@NoRepositoryBean
+public interface IJpaCommandRepository<E, K> extends JpaRepository<E, K> { }
+
+// query base — infrastructure/adapters/output/repositories/query/IJpaQueryRepository.java
+@NoRepositoryBean
+public interface IJpaQueryRepository<E, K> extends JpaRepository<E, K> { }
+```
+
+Feature-specific repos extend the appropriate base:
+
+```java
+@Repository
+public interface ITypeCategoryCommandJpaRepository
+        extends IJpaCommandRepository<TypeCategoryEntity, Long> { }
+
+@Repository
+public interface ITypeCategoryQueryJpaRepository
+        extends IJpaQueryRepository<TypeCategoryEntity, Long> {
+    @Query(value = "SELECT nextval('type_category_seq')", nativeQuery = true)
+    Long getNextValSequence();
+}
+```
+
+---
+
+## Solution 3: `GenericServiceImpl<M, K>`
+
+Located in `commons/services/impl/GenericServiceImpl.java`, this abstract class provides default implementations for
+all methods of `IGenericService<M, K>`, delegating to an `IRepository<M, K>` returned by `getRepository()`.
+
+Feature `*ServiceImpl` classes extend it and override only three methods:
+
+```java
+@Service
+public class TypeCategoryServiceImpl
+        extends GenericServiceImpl<TypeCategory, Long>
+        implements ITypeCategoryService {
+
+    @Override protected ITypeCategoryRepository getRepository() { return categoryRepository; }
+    @Override protected Long getModelKey(TypeCategory m) { return m == null ? null : m.getId(); }
+    @Override protected TypeCategory getEmptyModel() { return TypeCategory.builder().build(); }
+
+    // Custom business logic methods delegate to TypeCategoryDomainService
+}
+```
+
+---
+
+## Pagination Pipeline
+
+To keep the Domain pure, paginated results flow through a specific pipeline:
 
 1. **Request:** `PaginationRequest` (Record) captures `page`, `size`, and `sort`.
-2. **Execution:** Repository returns a JPA `Page<Entity>`.
-3. **Mapping:** `PaginationHelper.mapPage()` converts the `Page<Entity>` to `Page<DTO>` without losing pagination
-   metadata.
-4. **Delivery:** The Controller returns a standard Spring `Page` object.
+2. **Execution:** `AbstractRepositoryImpl.findAll(Example<M>, Pageable)` returns `Page<M>` (domain models).
+3. **Mapping:** Application mapper converts `Page<M>` to `Page<DTO>` using `PaginationHelper`.
+4. **Delivery:** Controller returns a standard `GenericResponse` wrapping the page.
 
-## 🧩 Controller Simplification
+---
 
-To reduce repetition in REST controllers, a `BaseRestController` provides helpers for:
+## Controller Simplification: `BaseRestController`
 
-- `success(...)`
-- `successList(...)`
-- `paginated(...)`
+Located at `infrastructure/common/BaseRestController.java`, provides helpers:
 
-This keeps controllers focused on orchestration only.
+- `success(result, messageKey)` — single object response
+- `successList(list, messageKey)` — list response
+- `paginated(page, messageKey)` — paginated response
 
-## 🔌 Adapter Strategy
+This keeps controllers focused on endpoint routing only; response building is never repeated.
 
-Repositories are split into:
+---
 
-- **Command Repositories:** For modifications (Write).
-- **Query Repositories:** For complex reads, projections, and reporting (Read).
+## Adapter Strategy Summary
 
-This prevents the JPA interface from becoming a "God Interface" with 100+ methods.
+| Component | Location | Responsibility |
+|---|---|---|
+| `IJpaCommandRepository<E,K>` | `repositories/command/` | Write-side JPA binding marker |
+| `IJpaQueryRepository<E,K>` | `repositories/query/` | Read-side JPA binding marker |
+| `AbstractRepositoryImpl<M,E,K>` | `infrastructure/common/` | All 10 `IRepository` methods implemented once |
+| `GenericServiceImpl<M,K>` | `commons/services/impl/` | All `IGenericService` methods delegating to `IRepository` |
+| `BaseRestController` | `infrastructure/common/` | Response builder helpers for all controllers |

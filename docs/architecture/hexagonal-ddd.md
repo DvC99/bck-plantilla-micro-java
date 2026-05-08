@@ -40,8 +40,30 @@ without touching a single line of `Domain` or `Application` code.
 When a business process involves multiple entities or requires an external port (like a repository) to make a decision,
 we use a **Domain Service**.
 
-**Example:** Checking if a "Type" name is unique before creating it. The `TypeService` (Domain) uses the
+**Example:** Checking if a "Type" name is unique before creating it. The `TypeDomainService` (Domain) uses the
 `ITypeRepository` (Port) to check uniqueness.
+
+#### The `@DomainService` Annotation
+
+Domain Services are annotated with `@DomainService` (defined in `domain/common/DomainService.java`). This is a pure
+Java annotation with no Spring dependency, preserving Domain Purity.
+
+The Infrastructure layer (`DomainServicesBeanRegistrar`) scans for this annotation at startup and registers each
+class as a Spring singleton bean with constructor autowiring. This means:
+
+- **No `DomainServicesConfig.java`** manually listing every service.
+- **Adding a new Domain Service requires only one step**: annotate the class with `@DomainService`.
+- The Domain layer never imports `org.springframework.*`.
+
+```java
+// domain/typecategory/TypeCategoryDomainService.java
+@DomainService  // <-- pure Java annotation, no Spring dependency
+public class TypeCategoryDomainService {
+    public TypeCategoryDomainService(ITypeCategoryRepository repo, ITypeRepository typeRepo) { ... }
+}
+```
+
+Spring resolves constructor dependencies from the application context automatically.
 
 ## 📂 Package Structure by Feature
 

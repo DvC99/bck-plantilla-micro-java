@@ -28,11 +28,11 @@ only point inwards.
 
 ### 📦 Module Structure
 
-- **`domain`**: The heart of the software. Contains business entities, domain services, and ports (interfaces). Lombok is permitted to reduce boilerplate code.
+- **`domain`**: The heart of the software. Contains business entities, domain services (annotated with `@DomainService`), and ports (interfaces). Lombok is permitted; no Spring annotations.
 - **`application`**: The orchestrator. Contains Use Cases, DTOs, and Mappers. Coordinates data flow between domain and infrastructure.
 - **`infrastructure`**: The technical detail. Contains database adapters (JPA), external API clients, gRPC/REST
-  controllers, and the `MainApplication` bootstrap.
-- **`commons`**: Shared cross-cutting utilities and base classes used across the project.
+  controllers, and the `MainApplication` bootstrap. `DomainServicesBeanRegistrar` auto-registers domain services.
+- **`commons`**: Shared cross-cutting utilities and base classes: `GenericServiceImpl`, CQRS abstracts, `IRepository`, response builders, exceptions.
 
 ### 📉 Dependency Flow
 
@@ -76,27 +76,89 @@ sequenceDiagram
 ### Prerequisites
 
 - **JDK 25**
-- **PostgreSQL**
-- **Apache Kafka**
-- **Spring Cloud Config Server** (Running at `http://172.17.1.161:8888`)
+- **PostgreSQL** (or a Supabase project)
+- **Apache Kafka** (optional in `dev` profile — disabled by default)
 
-### Execution
+### 1. Configure environment variables
 
-Since the project uses a multi-module structure, the entry point is located in the `infrastructure` module.
+All sensitive credentials are read from a `.env` file at the project root. This file is **never committed** to source
+control (it is listed in `.gitignore`).
 
-**1. Compile the project:**
+Copy the provided template and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+Then edit `.env` with your actual credentials:
+
+```dotenv
+# ── Server ────────────────────────────────────────────────────
+SERVER_PORT=8081
+GRPC_SERVER_PORT=9091
+
+# ── Command datasource (write) ────────────────────────────────
+SPRING_DATASOURCE_COMMAND_URL=jdbc:postgresql://<host>:<port>/<db>?reWriteBatchedInserts=true
+SPRING_DATASOURCE_COMMAND_USERNAME=<username>
+SPRING_DATASOURCE_COMMAND_PASSWORD=<password>
+
+# ── Query datasource (read) ───────────────────────────────────
+SPRING_DATASOURCE_QUERY_URL=jdbc:postgresql://<host>:<port>/<db>?reWriteBatchedInserts=true
+SPRING_DATASOURCE_QUERY_USERNAME=<username>
+SPRING_DATASOURCE_QUERY_PASSWORD=<password>
+
+# ── Kafka (optional — disabled in dev by default) ─────────────
+SPRING_KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+
+# ── CORS ──────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS=http://localhost:4200
+
+# ── REST microservice URLs (optional) ────────────────────────
+MICROSERVICE_AUDIT_URL=
+MICROSERVICE_AUTH_URL=
+MICROSERVICE_UTILITY_URL=
+
+# ── gRPC microservice URLs (optional) ────────────────────────
+GRPCSERVICE_AUDIT_URL=
+GRPCSERVICE_AUTH_URL=
+GRPCSERVICE_UTILITY_URL=
+
+# ── Email (optional) ──────────────────────────────────────────
+SPRING_MAIL_HOST=smtp.gmail.com
+SPRING_MAIL_PORT=587
+SPRING_MAIL_USERNAME=
+SPRING_MAIL_PASSWORD=
+SPRING_MAIL_SMTP_AUTH=true
+SPRING_MAIL_SMTP_STARTTLS_ENABLE=true
+
+# ── OCI Object Storage (optional) ────────────────────────────
+OCI_CONFIG_PROFILE=default
+OCI_OBJECTSTORAGE_BUCKET=
+OCI_OBJECTSTORAGE_NAMESPACE=
+OCI_TENANCY=
+OCI_USER=
+OCI_FINGERPRINT=
+OCI_REGION=
+OCI_PEM=
+```
+
+> **Note:** The dual datasource (`COMMAND` / `QUERY`) can point to the same database instance during development.
+> Kafka is disabled by default in the `dev` profile (`app.messaging.kafka.enabled=false`), so no broker is required
+> to start the application locally.
+
+### 2. Build the project
 
 ```bash
 ./gradlew clean build
 ```
 
-**2. Run the application:**
+### 3. Run the application (dev profile)
 
 ```bash
-./gradlew :infrastructure:bootRun
+./gradlew bootRun --args='--spring.profiles.active=dev'
 ```
 
-**3. Run tests:**
+### 4. Run tests
 
 ```bash
 ./gradlew test
@@ -124,12 +186,13 @@ Include the `Accept-Language` header in your requests:
 
 For detailed technical rules and workflows, refer to the architecture documentation:
 
-- 📘 **[Architectural Overview](./docs/architecture/overview.md)**: High-level structure and principles.
-- 🤖 **[Agent Guidelines](./docs/architecture/agent-guidelines.md)**: Strict rules for AI agents maintaining this
-  codebase.
-- 🧪 **[Testing Strategy](./docs/architecture/testing-strategy.md)**: Standards for Unit, Integration, and Synthetic
-  tests.
-- ❓ **[Frequently Asked Questions](./docs/architecture/faq.md)**: Troubleshooting and architectural justifications.
+- **[Architectural Overview](./docs/architecture/overview.md)**: High-level structure and principles.
+- **[Infrastructure Generic Patterns](./docs/architecture/infrastructure-generic.md)**: `AbstractRepositoryImpl`, `GenericServiceImpl`, `BaseRestController` — how boilerplate is eliminated.
+- **[Hexagonal Architecture & DDD](./docs/architecture/hexagonal-ddd.md)**: Domain purity, `@DomainService` auto-registration, ports & adapters.
+- **[Reusability Guide](./docs/architecture/reusability-guide.md)**: Checklist for new features and decision criteria for `commons` vs `infrastructure`.
+- **[Agent Guidelines](./docs/architecture/agent-guidelines.md)**: Strict rules for AI agents maintaining this codebase.
+- **[Testing Strategy](./docs/architecture/testing-strategy.md)**: Standards for Unit, Integration, and Synthetic tests.
+- **[Frequently Asked Questions](./docs/architecture/faq.md)**: Troubleshooting and architectural justifications.
 
 ---
 

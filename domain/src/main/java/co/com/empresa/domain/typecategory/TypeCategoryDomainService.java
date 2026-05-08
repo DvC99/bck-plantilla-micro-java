@@ -3,6 +3,7 @@ package co.com.empresa.domain.typecategory;
 
 import co.com.empresa.commons.exception.DomainException;
 
+import co.com.empresa.domain.common.DomainService;
 import co.com.empresa.domain.constants.DomainErrors;
 
 import co.com.empresa.domain.type.ITypeRepository;
@@ -20,6 +21,7 @@ import java.util.List;
 /**
  * Servicio de dominio que encapsula las reglas de negocio para {@link TypeCategory}.
  */
+@DomainService
 public class TypeCategoryDomainService {
 
     private final ITypeCategoryRepository categoryRepository;

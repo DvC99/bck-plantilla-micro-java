@@ -29,10 +29,13 @@
 
 - Two datasource/JPA contexts are configured: command vs query (`CommandJpaConfig`, `QueryJpaConfig`,
   `AbstractJpaConfig`, `SecretManager`).
-- Command repositories are transactional adapters (`...repositories/command/...RepositoryImpl.java`).
-- Query repositories map domain model `Example<T>` to entity `Example<Entity>` before JPA calls (
-  `TypeQueryRepositoryImpl`, `TypeCategoryQueryRepositoryImpl`).
-- Batch behavior is explicit: `updateAll` via `saveAll`, `deleteAll` via `deleteAllByIdInBatch` in command adapters.
+- **All `*RepositoryImpl` classes extend `AbstractRepositoryImpl<M, E, K>`** (`infrastructure/common/`). This base
+  class implements all 10 `IRepository` methods once. Subclasses only override `getNextValSequence()`.
+- **Feature JPA repos extend `IJpaCommandRepository` or `IJpaQueryRepository`** (both `@NoRepositoryBean`) instead of
+  `JpaRepository` directly. This makes the CQRS datasource binding explicit.
+- The `Example<M>` → `Example<Entity>` mapping is handled inside `AbstractRepositoryImpl`; subclasses do not repeat it.
+- Batch behavior is explicit: `updateAll` via `saveAll`, `deleteAll` via `deleteAllByIdInBatch` — both centralized in
+  `AbstractRepositoryImpl`.
 
 ## API conventions to follow
 
@@ -69,11 +72,22 @@
   `RestConfig`).
 - SQL baseline scripts for Type/TypeCategory live in `scripts/` and are written idempotently.
 
+## Domain Service registration (non-obvious)
+
+- Domain Services MUST be annotated with `@DomainService` (`domain/common/DomainService.java`). This is a **pure Java
+  annotation** — no Spring import.
+- `DomainServicesBeanRegistrar` (`infrastructure/config/domain/`) auto-scans `co.com.empresa.domain` and registers
+  every `@DomainService` class as a Spring singleton with constructor autowiring.
+- **There is no `DomainServicesConfig.java`**: do NOT recreate it. Adding a new `DomainService` only requires the
+  `@DomainService` annotation; no config file needs editing.
+
 ## Change checklist for agents
 
-- If you touch controllers/responses/errors/persistence/i18n, update `docs/requirements/FUNCIONALIDADES_IMPLEMENTADAS.md` in the same
-  PR.
-- Keep module boundaries: no infrastructure dependencies in `domain`; place Spring/web/JPA code in `infrastructure` or
-  `application`.
-- For new entity features, add both command and query adapters, then wire service + command/query use cases
-  consistently.
+- If you touch controllers/responses/errors/persistence/i18n, update `docs/requirements/FUNCIONALIDADES_IMPLEMENTADAS.md` in the same PR.
+- Keep module boundaries: no infrastructure dependencies in `domain`; place Spring/web/JPA code in `infrastructure` or `application`.
+- For new entity features follow the pattern:
+  1. `*RepositoryImpl` extends `AbstractRepositoryImpl<M, E, K>` — override only `getNextValSequence()`.
+  2. JPA repos extend `IJpaCommandRepository` / `IJpaQueryRepository` (not `JpaRepository` directly).
+  3. `DomainService` annotated with `@DomainService` — no manual bean declaration needed.
+  4. `*ServiceImpl` extends `GenericServiceImpl` — override only `getRepository()`, `getModelKey()`, `getEmptyModel()`.
+  5. Do NOT create `*Feature.java` empty marker classes.

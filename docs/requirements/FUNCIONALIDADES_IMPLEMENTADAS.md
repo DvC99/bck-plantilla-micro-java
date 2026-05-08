@@ -83,14 +83,25 @@ Controller (Infra) → UseCase (App) → Processor (Domain) → RepositoryImpl (
 
 ## 5. Repositorios y operaciones masivas
 
+### Base genérica de repositorios (`AbstractRepositoryImpl`)
+
+- `infrastructure/common/AbstractRepositoryImpl.java` — clase abstracta genérica `<M, E, K>` que implementa **todos los métodos de `IRepository`** (find, save, update, delete, batch ops) una sola vez.
+- Cada `*RepositoryImpl` de feature hereda de esta clase y solo sobrescribe `getNextValSequence()`.
+- Reduce cada `*RepositoryImpl` de ~200 líneas a ~15 líneas. Los features nuevos no necesitan re-implementar los 10 métodos.
+
+### Interfaces base de JPA (CQRS)
+
+- `...repositories/command/IJpaCommandRepository<E,K>` — base `@NoRepositoryBean` para todos los repos de escritura. Extiende `JpaRepository`. Documenta el binding al `EntityManager` de command.
+- `...repositories/query/IJpaQueryRepository<E,K>` — base `@NoRepositoryBean` para todos los repos de lectura. Documenta el binding al `EntityManager` de query.
+
 ### Repos command/query específicos por entidad
 
 - **Type:**
-    - `...repositories/command/type/ITypeCommandJpaRepository.java`
-    - `...repositories/query/type/ITypeQueryJpaRepository.java`
+    - `...repositories/command/type/ITypeCommandJpaRepository.java` → extiende `IJpaCommandRepository<TypeEntity, Long>`
+    - `...repositories/query/type/ITypeQueryJpaRepository.java` → extiende `IJpaQueryRepository<TypeEntity, Long>` + `getNextValSequence()`
 - **TypeCategory:**
-    - `...repositories/command/typeCategory/ITypeCategoryCommandJpaRepository.java`
-    - `...repositories/query/typeCategory/ITypeCategoryQueryJpaRepository.java`
+    - `...repositories/command/typeCategory/ITypeCategoryCommandJpaRepository.java` → extiende `IJpaCommandRepository<TypeCategoryEntity, Long>`
+    - `...repositories/query/typeCategory/ITypeCategoryQueryJpaRepository.java` → extiende `IJpaQueryRepository<TypeCategoryEntity, Long>` + `getNextValSequence()`
 - **EventAudit:**
     - `...repositories/command/event/IEventAuditCommandJpaRepository.java`
     - `...repositories/query/event/IEventAuditQueryJpaRepository.java`
@@ -103,7 +114,7 @@ Controller (Infra) → UseCase (App) → Processor (Domain) → RepositoryImpl (
 
 - `updateAll(...)` en bloque con `saveAll(...)`.
 - `deleteAll(...)` en bloque con `deleteAllByIdInBatch(...)`.
-- Repos command con frontera transaccional declarada.
+- Lógica centralizada en `AbstractRepositoryImpl`; no se repite por feature.
 
 ---
 
@@ -166,13 +177,18 @@ Todas las clases abstractas CQRS residen en `commons/cqrs/`:
 
 ---
 
-## 9. Servicios de dominio (beans de configuración)
+## 9. Servicios de dominio (auto-registro por anotación)
 
-Los `DomainService` del dominio no usan `@Service` (el dominio es agnóstico a Spring). Se registran como beans en:
+Los `DomainService` del dominio no usan `@Service` (el dominio es agnóstico a Spring). Se registran automáticamente mediante:
 
-- `infrastructure/config/domain/DomainServicesConfig.java`
-    - `TypeCategoryDomainService`
-    - `TypeDomainService`
+- `domain/common/DomainService.java` — anotación marcadora pura (sin dependencias Spring). Se aplica a clases de dominio que encapsulan reglas de negocio entre múltiples entidades.
+- `infrastructure/config/domain/DomainServicesBeanRegistrar.java` — `BeanDefinitionRegistryPostProcessor` que escanea el paquete `co.com.empresa.domain` al arrancar, detecta todas las clases con `@DomainService`, y las registra como beans singleton con `AUTOWIRE_CONSTRUCTOR`.
+- **No existe más `DomainServicesConfig.java`**: un nuevo `DomainService` solo requiere la anotación; no hay que editar ningún archivo de configuración.
+
+### Domain Services registrados actualmente
+
+- `TypeCategoryDomainService` → anotado con `@DomainService`
+- `TypeDomainService` → anotado con `@DomainService`
 
 ---
 
