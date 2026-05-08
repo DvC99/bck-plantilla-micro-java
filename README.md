@@ -1,5 +1,7 @@
 # 🚀 BCK-Plantilla: Microservices Base Template
 
+[![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=DvC99_bck-plantilla-micro-java)
+
 **BCK-Plantilla** is a high-performance, production-ready base template for microservices developed by **Sysman**. It
 implements a **Pragmatic Hexagonal Architecture** combined with **Domain-Driven Design (DDD)** and **CQRS (Command Query
 Responsibility Segregation)** to ensure scalability, maintainability, and strict separation of concerns.
@@ -130,6 +132,9 @@ SPRING_MAIL_USERNAME=
 SPRING_MAIL_PASSWORD=
 SPRING_MAIL_SMTP_AUTH=true
 SPRING_MAIL_SMTP_STARTTLS_ENABLE=true
+
+# ── SonarQube ──────────────────────────────────────────────────
+SONAR_TOKEN=6dfb4fcd4b38dd7aaaaef0e4665024f443e2aef9
 
 # ── OCI Object Storage (optional) ────────────────────────────
 OCI_CONFIG_PROFILE=default

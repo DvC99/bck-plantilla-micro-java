@@ -117,7 +117,6 @@ package "infrastructure" <<infra>> {
   package "Config" {
     [CommandJpaConfig] as CJC
     [QueryJpaConfig] as QJC
-    [DomainServicesBeanRegistrar\n(auto-scan @DomainService)] as DSR
     [KafkaConfig] as KC
     [WebConfig / OpenApiConfig] as WC
   }
@@ -182,10 +181,6 @@ IEAR ..> EARI  : implemented by
 IEAS ..> EASI  : implemented by
 IEP  ..> KEP   : implemented by
 
-' ── Auto-registro de DomainServices ───────────────────────
-DSR ..[#blue]> TDS  : registers @Bean
-DSR ..[#blue]> TCDS : registers @Bean
-
 ' ── Config ────────────────────────────────────────────────
 CJC --> CDB
 QJC --> QDB
@@ -193,16 +188,9 @@ QJC --> QDB
 note bottom of domain
   **Domain Purity**
   Sin @Entity ni @Service.
-  @DomainService = anotación Java pura.
+  @DomainService = estereotipo Spring
+  con meta-@Component.
   Solo POJOs + Lombok.
-end note
-
-note right of DSR
-  **Auto-registro**
-  Escanea co.com.empresa.domain
-  Registra todo @DomainService
-  como Spring singleton.
-  No necesita DomainServicesConfig.
 end note
 
 note right of ABSTRACT_REPO

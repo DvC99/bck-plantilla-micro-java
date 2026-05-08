@@ -47,7 +47,7 @@ va en `infrastructure/common/`.
 | `GenericServiceImpl` | `commons/services/impl/` | CRUD delegado, solo 3 overrides |
 | `BaseUseCase` | `application/common/` | `executeProcessor()` y `buildPageContext()` sin repetición |
 | `BaseRestController` | `infrastructure/common/` | Respuestas estandarizadas sin repetición |
-| `@DomainService` + `DomainServicesBeanRegistrar` | `domain/common/` + `infrastructure/config/` | Beans auto-registrados, sin `DomainServicesConfig` manual |
+| `@DomainService` | `domain/common/` | Bean auto-registrado por Spring (estereotipo con meta-`@Component`) |
 | `IJpaCommandRepository` / `IJpaQueryRepository` | `infrastructure/adapters/repositories/` | Binding CQRS explícito y documentado |
 
 ---

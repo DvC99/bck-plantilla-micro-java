@@ -72,14 +72,13 @@
   `RestConfig`).
 - SQL baseline scripts for Type/TypeCategory live in `scripts/` and are written idempotently.
 
-## Domain Service registration (non-obvious)
+## Domain Service registration
 
-- Domain Services MUST be annotated with `@DomainService` (`domain/common/DomainService.java`). This is a **pure Java
-  annotation** — no Spring import.
-- `DomainServicesBeanRegistrar` (`infrastructure/config/domain/`) auto-scans `co.com.empresa.domain` and registers
-  every `@DomainService` class as a Spring singleton with constructor autowiring.
-- **There is no `DomainServicesConfig.java`**: do NOT recreate it. Adding a new `DomainService` only requires the
-  `@DomainService` annotation; no config file needs editing.
+- Domain Services MUST be annotated with `@DomainService` (`domain/common/DomainService.java`). This annotation
+  is meta-annotated with `@Component`, making it a **Spring stereotype** that is auto-detected by component scanning.
+- No manual configuration class is needed — Spring's `@ComponentScan` (which includes `co.com.empresa.domain`)
+  picks up all `@DomainService` classes automatically.
+- **No `DomainServicesConfig.java` or `DomainServicesBeanRegistrar.java` exists**: do NOT recreate them.
 
 ## Change checklist for agents
 
@@ -88,6 +87,6 @@
 - For new entity features follow the pattern:
   1. `*RepositoryImpl` extends `AbstractRepositoryImpl<M, E, K>` — override only `getNextValSequence()`.
   2. JPA repos extend `IJpaCommandRepository` / `IJpaQueryRepository` (not `JpaRepository` directly).
-  3. `DomainService` annotated with `@DomainService` — no manual bean declaration needed.
+  3. `DomainService` annotated with `@DomainService` (Spring stereotype, no manual config needed).
   4. `*ServiceImpl` extends `GenericServiceImpl` — override only `getRepository()`, `getModelKey()`, `getEmptyModel()`.
   5. Do NOT create `*Feature.java` empty marker classes.

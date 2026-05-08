@@ -177,18 +177,20 @@ Todas las clases abstractas CQRS residen en `commons/cqrs/`:
 
 ---
 
-## 9. Servicios de dominio (auto-registro por anotación)
+## 9. Servicios de dominio (anotación estereotipo Spring)
 
-Los `DomainService` del dominio no usan `@Service` (el dominio es agnóstico a Spring). Se registran automáticamente mediante:
+Los `DomainService` del dominio usan la anotación `@DomainService` definida en `domain/common/DomainService.java`.
+Esta anotación tiene `@Component` como meta-anotación, por lo que es un **estereotipo Spring** auto-detectado
+por el escaneo de componentes.
 
-- `domain/common/DomainService.java` — anotación marcadora pura (sin dependencias Spring). Se aplica a clases de dominio que encapsulan reglas de negocio entre múltiples entidades.
-- `infrastructure/config/domain/DomainServicesBeanRegistrar.java` — `BeanDefinitionRegistryPostProcessor` que escanea el paquete `co.com.empresa.domain` al arrancar, detecta todas las clases con `@DomainService`, y las registra como beans singleton con `AUTOWIRE_CONSTRUCTOR`.
-- **No existe más `DomainServicesConfig.java`**: un nuevo `DomainService` solo requiere la anotación; no hay que editar ningún archivo de configuración.
+- `@DomainService` usa `@Component` internamente → IntelliJ lo reconoce como bean Spring.
+- Sin clases de configuración manual ni `BeanDefinitionRegistryPostProcessor`.
+- Un nuevo `DomainService` solo requiere anotar la clase; Spring lo registra automáticamente.
 
-### Domain Services registrados actualmente
+### Domain Services registrados
 
-- `TypeCategoryDomainService` → anotado con `@DomainService`
-- `TypeDomainService` → anotado con `@DomainService`
+- `TypeCategoryDomainService` → `@DomainService`
+- `TypeDomainService` → `@DomainService`
 
 ---
 
