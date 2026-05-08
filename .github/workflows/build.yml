@@ -27,9 +27,13 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build & Test
-        run: ./gradlew clean build jacocoTestReport
+        run: |
+          chmod +x gradlew
+          ./gradlew clean build jacocoTestReport
 
       - name: SonarQube Scan
-        run: ./gradlew sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }}
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
