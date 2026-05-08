@@ -1,4 +1,11 @@
-package co.com.empresa.domain.type;import co.com.empresa.commons.services.IGenericService;/**
+package co.com.empresa.domain.type;
+
+
+import co.com.empresa.commons.exception.DomainException;
+import co.com.empresa.commons.services.IGenericService;
+
+
+/**
  * Puerto de salida de servicios de dominio para {@code Type}.
  */
 public interface ITypeService extends IGenericService<Type, Long> {

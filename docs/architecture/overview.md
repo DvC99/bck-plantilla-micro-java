@@ -53,7 +53,7 @@ The **Technical Detail**. Implementation of ports and external interfaces.
 - **Entities (DB):** JPA Entities mapping to the database schema.
 - **Dual Datasource:** Separate `CommandJpaConfig` and `QueryJpaConfig` with independent Hikari pools. JPA repos extend `IJpaCommandRepository` or `IJpaQueryRepository` to document the binding explicitly.
 - **Event Audit:** `EventAuditServiceImpl` + `KafkaEventListenerAspect` for idempotent Kafka consumption.
-- **Domain Bean Auto-Registration:** `DomainServicesBeanRegistrar` scans for `@DomainService` and registers beans automatically — no manual config class needed.
+- **Domain Bean Auto-Registration:** `@DomainService` is meta-annotated with `@Component`, so Spring's component scanning auto-detects all domain services — no manual config needed.
 
 ### 4. Commons Module (`commons`)
 
