@@ -28,7 +28,7 @@ The **Heart of the Software**. A Java library with zero dependencies on Spring o
 
 - **Entities:** Rich domain objects with internal validation (`validate()`).
 - **Ports (Interfaces):** Definitions of what the domain needs from the outside (e.g., `ITypeRepository`, `IEventPublisher`).
-- **Domain Services:** Business logic that doesn't belong to a single entity (e.g., `TypeDomainService`, `TypeCategoryDomainService`). Registered as Spring beans in `infrastructure/config/domain/DomainServicesConfig.java`.
+- **Domain Services:** Business logic that doesn't belong to a single entity (e.g., `TypeDomainService`, `TypeCategoryDomainService`). Annotated with `@DomainService` (pure Java marker) and auto-registered as Spring beans by `DomainServicesBeanRegistrar` in infrastructure.
 - **Processors (CQRS):** Specialized classes that implement a standardized lifecycle (`preProcess` → `process` → `postProcess`).
 - **Commands & Queries:** Immutable records encapsulating the intent and data of a specific operation.
 
@@ -46,14 +46,14 @@ The **Orchestrator**. Coordinates the flow of data between the domain and the in
 
 The **Technical Detail**. Implementation of ports and external interfaces.
 
-- **Adapters (JPA):** Concrete implementations of domain repository ports.
+- **Adapters (JPA):** Concrete implementations of domain repository ports, all extending `AbstractRepositoryImpl<M,E,K>` to eliminate per-feature boilerplate.
 - **Controllers:** REST endpoints that delegate to application use cases.
 - **BaseRestController:** (`infrastructure/common/BaseRestController.java`) — provides `success()`, `successList()`, `paginated()` helpers to all controllers.
 - **Generic Services:** `GenericServiceImpl` provides standard CRUD + dynamic filtering + pagination.
 - **Entities (DB):** JPA Entities mapping to the database schema.
-- **Dual Datasource:** Separate `CommandJpaConfig` and `QueryJpaConfig` with independent Hikari pools.
+- **Dual Datasource:** Separate `CommandJpaConfig` and `QueryJpaConfig` with independent Hikari pools. JPA repos extend `IJpaCommandRepository` or `IJpaQueryRepository` to document the binding explicitly.
 - **Event Audit:** `EventAuditServiceImpl` + `KafkaEventListenerAspect` for idempotent Kafka consumption.
-- **Domain Beans Config:** `DomainServicesConfig` registers `TypeDomainService` and `TypeCategoryDomainService` as Spring beans without polluting the domain with `@Service`.
+- **Domain Bean Auto-Registration:** `DomainServicesBeanRegistrar` scans for `@DomainService` and registers beans automatically — no manual config class needed.
 
 ### 4. Commons Module (`commons`)
 
@@ -108,6 +108,6 @@ The project uses a multi-agent system in `.agents/` to ensure architectural comp
 - **Statelessness:** All handlers and services are Spring Singletons and stateless.
 - **Feature-based Packaging:** Code is organized by business feature (e.g., `/type`, `/typecategory`, `/event`) rather than by technical layer.
 - **Fail Fast:** Validation occurs at the DTO level (Application) and at the Domain Entity level.
-- **Domain Purity:** Domain module has zero Spring/JPA annotations. `@Service` beans for domain services are declared in `infrastructure/config/domain/`.
+- **Domain Purity:** Domain module has zero Spring/JPA runtime annotations. `@DomainService` is a pure Java marker; Spring bean registration is handled exclusively by `DomainServicesBeanRegistrar` in infrastructure.
 
 👉 *For deeper insights into the reasoning behind these decisions, see the **[FAQ](./faq.md)**.*

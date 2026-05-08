@@ -1,6 +1,7 @@
 package co.com.empresa.domain.type;
 
 import co.com.empresa.commons.exception.DomainException;
+import co.com.empresa.domain.common.DomainService;
 import co.com.empresa.domain.constants.DomainErrors;
 import co.com.empresa.domain.typecategory.ITypeCategoryRepository;
 import org.springframework.data.domain.Example;
@@ -14,6 +15,7 @@ import java.util.List;
  * Provides cross-cutting validations such as code uniqueness within a category
  * and verification of dependency existence.
  */
+@DomainService
 public class TypeDomainService {
 
     private final ITypeRepository typeRepository;

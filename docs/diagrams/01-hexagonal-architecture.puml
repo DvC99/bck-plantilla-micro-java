@@ -32,14 +32,17 @@ package "commons" <<commons>> {
   [GenericResponse<T>] as GR
   [MessageService / MessageKeys] as MS
   [IGenericService / IRepository] as IGS
+  [GenericServiceImpl<M,K>] as GSIMPL
   [Excepciones (Domain/App/Infra)] as EXC
   [Utilidades (Pagination, Date, Cripto)] as UTL
 }
 
 package "domain" <<domain>> {
+  [DomainService\n(annotation)] as DS_ANN
+
   package "type" {
     [Type (Entity)] as TE
-    [TypeDomainService] as TDS
+    [TypeDomainService\n@DomainService] as TDS
     [TypeCreate/Update/DeleteProcessor] as TCP
     [TypeGetById/Combo/PaginadoProcessor] as TQP
     [ITypeRepository (Port)] as ITR
@@ -47,7 +50,7 @@ package "domain" <<domain>> {
   }
   package "typecategory" {
     [TypeCategory (Entity)] as TCE
-    [TypeCategoryDomainService] as TCDS
+    [TypeCategoryDomainService\n@DomainService] as TCDS
     [TypeCategoryCreate/DeleteProcessor] as TCCP
     [TypeCategoryGetAll/ById/PaginadoProcessor] as TCQP
     [ITypeCategoryRepository (Port)] as ITCR
@@ -87,13 +90,23 @@ package "infrastructure" <<infra>> {
   }
 
   package "JPA Adapters" {
-    [TypeServiceImpl] as TSI
-    [TypeRepositoryImpl] as TRI
-    [TypeCategoryServiceImpl] as TCSI
-    [TypeCategoryRepositoryImpl] as TCRI
+    [TypeServiceImpl\nextends GenericServiceImpl] as TSI
+    [TypeRepositoryImpl\nextends AbstractRepositoryImpl] as TRI
+    [TypeCategoryServiceImpl\nextends GenericServiceImpl] as TCSI
+    [TypeCategoryRepositoryImpl\nextends AbstractRepositoryImpl] as TCRI
     [EventAuditRepositoryImpl] as EARI
     [EventAuditServiceImpl] as EASI
     [EventAuditRepository\n(JpaRepository)] as EAR_JPA
+  }
+
+  package "JPA Repo Bases" {
+    [AbstractRepositoryImpl<M,E,K>] as ABSTRACT_REPO
+    [IJpaCommandRepository<E,K>] as ICMD_REPO
+    [IJpaQueryRepository<E,K>] as IQRY_REPO
+    [ITypeCategoryCommandJpaRepository\nextends IJpaCommandRepository] as ITCMD
+    [ITypeCategoryQueryJpaRepository\nextends IJpaQueryRepository] as ITQRY
+    [ITypeCommandJpaRepository\nextends IJpaCommandRepository] as TCMD
+    [ITypeQueryJpaRepository\nextends IJpaQueryRepository] as TQRY
   }
 
   package "Messaging" {
@@ -104,7 +117,7 @@ package "infrastructure" <<infra>> {
   package "Config" {
     [CommandJpaConfig] as CJC
     [QueryJpaConfig] as QJC
-    [DomainServicesConfig] as DSC
+    [DomainServicesBeanRegistrar\n(auto-scan @DomainService)] as DSR
     [KafkaConfig] as KC
     [WebConfig / OpenApiConfig] as WC
   }
@@ -126,6 +139,9 @@ TCCP --|> CPA : extends
 TQP --|> QA  : extends
 TCQP --|> QA : extends
 
+' ── GenericServiceImpl en commons ─────────────────────────
+GSIMPL --|> IGS : implements
+
 ' ── UseCases extienden BaseUseCase ─────────────────────────
 TUC  --|> BUC : extends
 TCUC --|> BUC : extends
@@ -134,6 +150,20 @@ TCUC --|> BUC : extends
 TRC  --|> BRC : extends
 TCRC --|> BRC : extends
 EARC --|> BRC : extends
+
+' ── ServiceImpl extiende GenericServiceImpl ────────────────
+TSI  --|> GSIMPL : extends
+TCSI --|> GSIMPL : extends
+
+' ── RepositoryImpl extiende AbstractRepositoryImpl ─────────
+TRI  --|> ABSTRACT_REPO : extends
+TCRI --|> ABSTRACT_REPO : extends
+
+' ── JPA repo bases ─────────────────────────────────────────
+ITCMD --|> ICMD_REPO : extends
+TCMD  --|> ICMD_REPO : extends
+ITQRY --|> IQRY_REPO : extends
+TQRY  --|> IQRY_REPO : extends
 
 ' ── Flujo principal ────────────────────────────────────────
 TRC  --> TUC   : delega
@@ -152,16 +182,34 @@ IEAR ..> EARI  : implemented by
 IEAS ..> EASI  : implemented by
 IEP  ..> KEP   : implemented by
 
+' ── Auto-registro de DomainServices ───────────────────────
+DSR ..[#blue]> TDS  : registers @Bean
+DSR ..[#blue]> TCDS : registers @Bean
+
 ' ── Config ────────────────────────────────────────────────
-DSC --> TDS  : @Bean
-DSC --> TCDS : @Bean
 CJC --> CDB
 QJC --> QDB
 
 note bottom of domain
   **Domain Purity**
   Sin @Entity ni @Service.
+  @DomainService = anotación Java pura.
   Solo POJOs + Lombok.
+end note
+
+note right of DSR
+  **Auto-registro**
+  Escanea co.com.empresa.domain
+  Registra todo @DomainService
+  como Spring singleton.
+  No necesita DomainServicesConfig.
+end note
+
+note right of ABSTRACT_REPO
+  **AbstractRepositoryImpl**
+  Implementa los 10 métodos
+  de IRepository una sola vez.
+  Subclases: ~15 líneas.
 end note
 
 note bottom of commons
