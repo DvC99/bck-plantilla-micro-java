@@ -134,7 +134,7 @@ SPRING_MAIL_SMTP_AUTH=true
 SPRING_MAIL_SMTP_STARTTLS_ENABLE=true
 
 # ── SonarQube ──────────────────────────────────────────────────
-SONAR_TOKEN=6dfb4fcd4b38dd7aaaaef0e4665024f443e2aef9
+SONAR_TOKEN=
 
 # ── OCI Object Storage (optional) ────────────────────────────
 OCI_CONFIG_PROFILE=default
@@ -151,7 +151,19 @@ OCI_PEM=
 > Kafka is disabled by default in the `dev` profile (`app.messaging.kafka.enabled=false`), so no broker is required
 > to start the application locally.
 
-### 2. Build the project
+### 2. Install GitHub CLI
+
+```bash
+winget install --id GitHub.cli
+```
+
+Authenticate with your GitHub account:
+
+```bash
+gh auth login
+```
+
+### 3. Build the project
 
 ```bash
 ./gradlew clean build
